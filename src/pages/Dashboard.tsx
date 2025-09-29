@@ -5,6 +5,7 @@ import PetCard from "@/components/pets/PetCard";
 import TrailCard from "@/components/learning/TrailCard";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 // Mock data
 const mockPets = [
@@ -71,7 +72,7 @@ const mockTrails = [
 ];
 
 const Dashboard = () => {
-  const handleEditPet = (pet: any) => {
+  const handleEditPet = (pet: unknown) => {
     console.log("Editar pet:", pet);
   };
 
@@ -86,6 +87,12 @@ const Dashboard = () => {
   const handleContinueTrail = (trailId: string) => {
     console.log("Continuar trilha:", trailId);
   };
+  
+  const navigate = useNavigate(); // Hook para navegação
+
+  const handleAddPet = () => {
+    navigate("/add-pet"); //  Redireciona para a tela de cadastro de pet
+  }
 
   return (
     <div className="min-h-screen bg-gradient-soft">
@@ -100,7 +107,7 @@ const Dashboard = () => {
         <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-foreground">Meus Pets</h2>
-            <Button variant="default" className="gap-2">
+            <Button onClick={handleAddPet} variant="default" className="gap-2">
               <Plus className="h-4 w-4" />
               Adicionar Pet
             </Button>

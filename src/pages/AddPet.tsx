@@ -16,7 +16,7 @@ const AddPet = () => {
     birthDate: "",
     size: "",
     gender: "",
-  });
+  }); 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
