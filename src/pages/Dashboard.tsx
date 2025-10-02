@@ -104,7 +104,7 @@ const Dashboard = () => {
         <StatsCard />
 
         {/* Meus Pets Section */}
-        <section>
+        <section id="meus-pets">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-foreground">Meus Pets</h2>
             <Button onClick={handleAddPet} variant="default" className="gap-2">

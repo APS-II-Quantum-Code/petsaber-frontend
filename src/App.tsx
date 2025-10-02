@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AddPet from "./pages/AddPet";
+import EditPet from "./pages/EditPet";
 import NotFound from "./pages/NotFound";
 import { MdOutlinePets } from "react-icons/md";
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/add-pet" element={<AddPet />} />
+          <Route path="/edit-pet/:id" element={<EditPet />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

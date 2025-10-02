@@ -14,7 +14,14 @@ const Header = () => {
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
-          <Button variant="ghost" size="sm" className="gap-2">
+          <Button variant="ghost" size="sm" className="gap-2"
+            onClick={() => {
+              const petsSection = document.getElementById('meus-pets');
+              if (petsSection) {
+                petsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }}
+          >
             <Heart className="h-4 w-4" />
             Meus Pets
           </Button>
