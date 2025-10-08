@@ -57,6 +57,13 @@ const Header = () => {
 
         <div className="flex items-center gap-3">
           <DropdownMenu>
+          <Avatar className="h-8 w-8">
+            <AvatarImage src="/placeholder-avatar.jpg" />
+            <AvatarFallback className="bg-primary text-primary-foreground">
+              <User className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
+          <span className="hidden sm:block text-sm font-medium">João Silva</span> 
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-9 w-9">
                 <Settings className="h-5 w-5" />
@@ -84,13 +91,6 @@ const Header = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="/placeholder-avatar.jpg" />
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              <User className="h-4 w-4" />
-            </AvatarFallback>
-          </Avatar>
-          <span className="hidden sm:block text-sm font-medium">João Silva</span>
         </div>
       </div>
     </header>
