@@ -1,23 +1,33 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import petSaberLogo from "@/assets/pet-saber-logo.png";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
+    senha: "",
   });
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui seria a lógica de login quando conectar com backend
-    console.log("Login data:", formData);
+    try {
+      const user = await login(formData);
+      navigate(user.role.toUpperCase() === "TUTOR" ? "/tutor" : "/consultor", { replace: true });
+    } catch (e) {
+      console.log(e);
+      toast({ title: "Falha no login", description: "Verifique suas credenciais.", variant: "destructive" });
+    }
   };
 
   return (
@@ -61,8 +71,8 @@ const Login = () => {
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   className="pl-10 pr-10"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  value={formData.senha}
+                  onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
                   required
                 />
                 <Button

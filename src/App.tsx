@@ -2,7 +2,7 @@ import {Toaster} from "@/components/ui/toaster";
 import {Toaster as Sonner} from "@/components/ui/sonner";
 import {TooltipProvider} from "@/components/ui/tooltip";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
-import {BrowserRouter, Routes, Route} from "react-router-dom";
+import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -16,8 +16,18 @@ import Module from "./pages/Module";
 import Quiz from "./pages/Quiz";
 import NotFound from "./pages/NotFound";
 import LandingPage from "@/pages/LandingPage.tsx";
+import {AuthProvider, useAuth} from "@/context/AuthContext";
+import TutorDashboard from "@/pages/TutorDashboard";
+import ConsultantDashboard from "@/pages/ConsultantDashboard";
+import {ProtectedRoute, RoleRoute} from "@/routes/ProtectedRoute";
 
 const queryClient = new QueryClient();
+
+const RoleRedirect = () => {
+    const {user} = useAuth();
+    if (!user) return <Navigate to="/login" replace/>;
+    return <Navigate to={user.role.toUpperCase() === "TUTOR" ? "/tutor" : user.role.toUpperCase() === "CONSULTOR" ? "/consultor" : "/"} replace/>;
+}
 
 const App = () => (
     <QueryClientProvider client={queryClient}>
@@ -25,22 +35,34 @@ const App = () => (
             <Toaster/>
             <Sonner/>
             <BrowserRouter>
-                <Routes>
-                    <Route path="/" element={<LandingPage/>}/>
-                    <Route path="/home" element={<Index/>}/>
-                    <Route path="/login" element={<Login/>}/>
-                    <Route path="/register" element={<Register/>}/>
-                    <Route path="/add-pet" element={<AddPet/>}/>
-                    <Route path="/edit-pet/:id" element={<EditPet/>}/>
-                    <Route path="/edit-profile" element={<EditProfile/>}/>
-                    <Route path="/account-info" element={<AccountInfo/>}/>
-                    <Route path="/trails" element={<Trails/>}/>
-                    <Route path="/trail/:id" element={<TrailDetails/>}/>
-                    <Route path="/module/:trailId/:moduleId" element={<Module/>}/>
-                    <Route path="/quiz/:trailId/:moduleId" element={<Quiz/>}/>
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound/>}/>
-                </Routes>
+                <AuthProvider>
+                    <Routes>
+                        <Route path="/" element={<LandingPage/>}/>
+                        <Route path="/login" element={<Login/>}/>
+                        <Route path="/register" element={<Register/>}/>
+
+                        <Route element={<ProtectedRoute/>}>
+                            <Route path="/me" element={<RoleRedirect/>}/>
+                            <Route element={<RoleRoute allow={["TUTOR", "CONSULTOR"]}/>}>
+                                <Route path="/tutor" element={<TutorDashboard/>}/>
+                                <Route path="/consultor" element={<ConsultantDashboard/>}/>
+                            </Route>
+
+                            <Route path="/home" element={<Index/>}/>
+
+                            <Route path="/add-pet" element={<AddPet/>}/>
+                            <Route path="/edit-pet/:id" element={<EditPet/>}/>
+                            <Route path="/edit-profile" element={<EditProfile/>}/>
+                            <Route path="/account-info" element={<AccountInfo/>}/>
+                            <Route path="/trails" element={<Trails/>}/>
+                            <Route path="/trail/:id" element={<TrailDetails/>}/>
+                            <Route path="/module/:trailId/:moduleId" element={<Module/>}/>
+                            <Route path="/quiz/:trailId/:moduleId" element={<Quiz/>}/>
+                        </Route>
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                        <Route path="*" element={<NotFound/>}/>
+                    </Routes>
+                </AuthProvider>
             </BrowserRouter>
         </TooltipProvider>
     </QueryClientProvider>

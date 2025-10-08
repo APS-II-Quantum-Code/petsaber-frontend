@@ -1,26 +1,47 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import petSaberLogo from "@/assets/pet-saber-logo.png";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    nome: "",
+    cpf: "",
     email: "",
-    password: "",
-    confirmPassword: "",
+    senha: "",
+    confirmSenha: "",
   });
+  const { register } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui seria a lógica de cadastro quando conectar com backend
-    console.log("Register data:", formData);
+    if (formData.senha !== formData.confirmSenha) {
+      toast({ title: "Senhas não conferem", description: "As senhas devem ser iguais.", variant: "destructive" });
+      return;
+    }
+    try {
+      await register({
+        nome: formData.nome,
+        email: formData.email,
+        senha: formData.senha,
+        role: "TUTOR",
+      });
+      toast({ title: "Cadastro realizado", description: "Faça login para continuar." });
+      navigate("/login", { replace: true });
+    } catch (e) {
+      // Erros já são tratados no apiFetch com toast, mas mantemos fallback
+      toast({ title: "Falha no cadastro", description: "Tente novamente mais tarde.", variant: "destructive" });
+    }
   };
 
   return (
@@ -40,20 +61,21 @@ const Register = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nome completo</Label>
+              <Label htmlFor="nome">Nome completo</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="name"
+                  id="nome"
                   type="text"
                   placeholder="Seu nome completo"
                   className="pl-10"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.nome}
+                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
                   required
                 />
               </div>
             </div>
+
 
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
@@ -72,16 +94,16 @@ const Register = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="senha">Senha</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="password"
+                  id="senha"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   className="pl-10 pr-10"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  value={formData.senha}
+                  onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
                   required
                 />
                 <Button
@@ -101,16 +123,16 @@ const Register = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar senha</Label>
+              <Label htmlFor="confirmSenha">Confirmar senha</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="confirmPassword"
+                  id="confirmSenha"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="••••••••"
                   className="pl-10 pr-10"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  value={formData.confirmSenha}
+                  onChange={(e) => setFormData({ ...formData, confirmSenha: e.target.value })}
                   required
                 />
                 <Button

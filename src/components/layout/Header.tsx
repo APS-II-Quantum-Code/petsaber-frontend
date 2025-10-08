@@ -11,12 +11,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import petSaberLogo from "@/assets/pet-saber-logo.png";
+import { useAuth } from "@/context/AuthContext";
 
 const Header = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    console.log("Logout");
+    logout();
     navigate("/login");
   };
 
@@ -63,7 +65,7 @@ const Header = () => {
               <User className="h-4 w-4" />
             </AvatarFallback>
           </Avatar>
-          <span className="hidden sm:block text-sm font-medium">João Silva</span> 
+          <span className="hidden sm:block text-sm font-medium">{user?.nome}</span> 
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-9 w-9">
                 <Settings className="h-5 w-5" />
@@ -74,11 +76,11 @@ const Header = () => {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                 <UserCircle className="mr-2 h-4 w-4" />
-                Editar perfil do tutor
+                Editar Perfil do tutor
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/edit-pet/1")}>
                 <Heart className="mr-2 h-4 w-4" />
-                Editar perfil do pet
+                Editar Perfil do pet
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate("/account-info")}>
                 <Info className="mr-2 h-4 w-4" />
