@@ -7,8 +7,9 @@ import {Button} from "@/components/ui/button.tsx";
 import {Plus} from "lucide-react";
 import PetCard from "@/components/pets/PetCard.tsx";
 import TrailCard from "@/components/learning/TrailCard.tsx";
-import {TutorAPI} from "@/lib/api";
+import {PetAPI, TutorAPI} from "@/lib/api";
 import {useAuth} from "@/context/AuthContext";
+import {toast} from "@/hooks/use-toast";
 
 const TutorDashboard = () => {
     const {token} = useAuth();
@@ -93,8 +94,14 @@ const TutorDashboard = () => {
         console.log("Editar pet:", pet);
     };
 
-    const handleDeletePet = (petId: string) => {
-        console.log("Excluir pet:", petId);
+    const handleDeletePet = async (petId: string) => {
+        try {
+            await PetAPI.deletarPet<void>(petId, token);
+            setPets((prevPets) => prevPets.filter((pet) => pet.idPet !== Number(petId)));
+            toast({ title: "Pet removido", description: "O pet foi excluído com sucesso." });
+        } catch (error) {
+            console.error("Erro ao excluir pet:", error);
+        }
     };
 
     const handleStartTrail = (trailId: string) => {

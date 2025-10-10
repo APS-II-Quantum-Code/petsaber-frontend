@@ -84,4 +84,6 @@ export const PetAPI = {
         apiFetch<T>(`/tutor/buscar-pets/${id}`, { method: "GET", token }),
     atualizarPet: <T>(id: string, petData: any, token: string | null) =>
         apiFetch<T>(`/tutor/editar-pet/${id}`, { method: "PUT", body: petData, token }),
+    deletarPet: <T>(id: string, token: string | null) =>
+        apiFetch<T>(`/tutor/deletar-pet/${id}`, { method: "DELETE", token }),
 };
