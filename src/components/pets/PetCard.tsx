@@ -5,14 +5,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 interface Pet {
-  id: string;
-  name: string;
-  species: string;
-  breed: string;
-  birthDate: string;
-  size: string;
-  gender: string;
-  photo?: string;
+  idPet: number;
+  nome: string;
+  especie: { nome: string };
+  raca: { nome: string };
+  dataNascimento: string;
+  porte: { nome: string };
+  sexo: string;
+  urlImagem: string | null;
+  idade: number;
 }
 
 interface PetCardProps {
@@ -23,13 +24,6 @@ interface PetCardProps {
 
 const PetCard = ({ pet, onEdit, onDelete }: PetCardProps) => {
   const navigate = useNavigate();
-
-  const calculateAge = (birthDate: string) => {
-    const birth = new Date(birthDate);
-    const today = new Date();
-    const age = today.getFullYear() - birth.getFullYear();
-    return age;
-  };
 
   const getSizeColor = (size: string) => {
     switch (size.toLowerCase()) {
@@ -49,15 +43,15 @@ const PetCard = ({ pet, onEdit, onDelete }: PetCardProps) => {
               <Heart className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground text-lg">{pet.name}</h3>
-              <p className="text-sm text-muted-foreground">{pet.species} • {pet.breed}</p>
+              <h3 className="font-semibold text-foreground text-lg">{pet.nome}</h3>
+              <p className="text-sm text-muted-foreground">{pet.especie.nome} • {pet.raca.nome}</p>
             </div>
           </div>
           <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(`/edit-pet/${pet.id}`)}
+              onClick={() => navigate(`/edit-pet/${pet.idPet}`)}
               className="h-8 w-8"
             >
               <Edit className="h-4 w-4" />
@@ -65,7 +59,7 @@ const PetCard = ({ pet, onEdit, onDelete }: PetCardProps) => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onDelete(pet.id)}
+              onClick={() => onDelete(pet.idPet.toString())}
               className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
             >
               <Trash2 className="h-4 w-4" />
@@ -75,15 +69,15 @@ const PetCard = ({ pet, onEdit, onDelete }: PetCardProps) => {
 
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className={getSizeColor(pet.size)}>
-              {pet.size}
+            <Badge variant="secondary" className={getSizeColor(pet.porte.nome)}>
+              {pet.porte.nome}
             </Badge>
             <Badge variant="outline">
-              {pet.gender}
+              {pet.sexo}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground">
-            {calculateAge(pet.birthDate)} anos
+            {pet.idade} anos
           </p>
         </div>
       </CardContent>

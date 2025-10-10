@@ -2,8 +2,7 @@ import {Toaster} from "@/components/ui/toaster";
 import {Toaster as Sonner} from "@/components/ui/sonner";
 import {TooltipProvider} from "@/components/ui/tooltip";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
-import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
-import Index from "./pages/Index";
+import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AddPet from "./pages/AddPet";
@@ -47,8 +46,6 @@ const App = () => (
                                 <Route path="/tutor" element={<TutorDashboard/>}/>
                                 <Route path="/consultor" element={<ConsultantDashboard/>}/>
                             </Route>
-
-                            <Route path="/home" element={<Index/>}/>
 
                             <Route path="/add-pet" element={<AddPet/>}/>
                             <Route path="/edit-pet/:id" element={<EditPet/>}/>

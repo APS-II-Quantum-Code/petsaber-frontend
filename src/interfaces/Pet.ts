@@ -1,0 +1,6 @@
+export interface Pet {
+  // ...existing code...
+  especieId: number;
+  racaId: number;
+  // ...existing code...
+}

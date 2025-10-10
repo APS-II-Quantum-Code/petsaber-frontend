@@ -54,3 +54,34 @@ export const AuthAPI = {
   register: <T>(payload: { nome: string; email: string; senha: string; role: "TUTOR" }) =>
     apiFetch<T>("/auth/register", { method: "POST", body: { nome: payload.nome, email: payload.email, senha: payload.senha, role: payload.role } }),
 };
+
+export const TutorAPI = {
+  meuProgresso: <T>(token: string | null) =>
+    apiFetch<T>("/tutor/meu-progresso", { method: "GET", token }),
+  buscarPets: <T>(token: string | null) =>
+    apiFetch<T>("/tutor/buscar-pets", { method: "GET", token }),
+};
+
+export const EspecieAPI = {
+  buscarEspecies: <T>(token: string | null) =>
+    apiFetch<T>("/tutor/especies", { method: "GET", token }),
+};
+
+export const RacaAPI = {
+  buscarRacasPorEspecie: <T>(especieId: number, token: string | null) =>
+    apiFetch<T>(`/tutor/especies/${especieId}/racas`, { method: "GET", token }),
+};
+
+export const PorteAPI = {
+    buscarPortes: <T>(token: string | null) =>
+        apiFetch<T>("/tutor/portes", { method: "GET", token }),
+};
+
+export const PetAPI = {
+    cadastrarPet: <T>(petData: any, token: string | null) =>
+        apiFetch<T>("/tutor/novo-pet", { method: "POST", body: petData, token }),
+    buscarPetPorId: <T>(id: string, token: string | null) =>
+        apiFetch<T>(`/tutor/buscar-pets/${id}`, { method: "GET", token }),
+    atualizarPet: <T>(id: string, petData: any, token: string | null) =>
+        apiFetch<T>(`/tutor/editar-pet/${id}`, { method: "PUT", body: petData, token }),
+};
