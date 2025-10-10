@@ -60,6 +60,10 @@ export const TutorAPI = {
     apiFetch<T>("/tutor/meu-progresso", { method: "GET", token }),
   buscarPets: <T>(token: string | null) =>
     apiFetch<T>("/tutor/buscar-pets", { method: "GET", token }),
+  minhasTrilhas: <T>(token: string | null) =>
+    apiFetch<T>("/tutor/trilhas/minhas-trilhas", { method: "GET", token }),
+  trilhasDisponiveis: <T>(token: string | null) =>
+    apiFetch<T>("/tutor/trilhas", { method: "GET", token }),
 };
 
 export const EspecieAPI = {

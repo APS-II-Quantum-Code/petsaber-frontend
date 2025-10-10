@@ -6,7 +6,7 @@ import StatsCard from "@/components/dashboard/StatsCard.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {Plus} from "lucide-react";
 import PetCard from "@/components/pets/PetCard.tsx";
-import TrailCard from "@/components/learning/TrailCard.tsx";
+import TrailCard, {TrailProgressCardData} from "@/components/learning/TrailCard.tsx";
 import {PetAPI, TutorAPI} from "@/lib/api";
 import {useAuth} from "@/context/AuthContext";
 import {toast} from "@/hooks/use-toast";
@@ -37,8 +37,41 @@ const TutorDashboard = () => {
         urlImagem: string | null;
     };
 
+    type TutorTrailProgressResponse = {
+        content: Array<{
+            idProgressoTrilha: number;
+            dataInicio: string | null;
+            dataConclusao: string | null;
+            status: "NAO_INICIADA" | "EM_ANDAMENTO" | "CONCLUIDA";
+            modulosConcluidos: number;
+            trilha: {
+                idTrilha: number;
+                nome: string;
+                descricao: string;
+                nivel: string;
+                horasTotais: number;
+                modulosTotais: number;
+            };
+        }>;
+    };
+
+    type TutorAvailableTrailsResponse = {
+        content: Array<{
+            idTrilha: number;
+            nome: string;
+            descricao: string;
+            nivel: string;
+            horasTotais: number;
+            modulosTotais: number;
+        }>;
+    };
+
     const [pets, setPets] = useState<Pet[]>([]);
     const [loadingPets, setLoadingPets] = useState(true);
+    const [trails, setTrails] = useState<TrailProgressCardData[]>([]);
+    const [loadingTrails, setLoadingTrails] = useState(true);
+    const [availableTrails, setAvailableTrails] = useState<TrailProgressCardData[]>([]);
+    const [loadingAvailableTrails, setLoadingAvailableTrails] = useState(true);
     const loadPets = async () => {
         setLoadingPets(true);
         try {
@@ -52,43 +85,61 @@ const TutorDashboard = () => {
         }
     };
 
+    const loadTrails = async () => {
+        setLoadingTrails(true);
+        try {
+            const resp = await TutorAPI.minhasTrilhas<TutorTrailProgressResponse>(token);
+            const mappedTrails: TrailProgressCardData[] = (resp?.content ?? []).map((item) => ({
+                id: item.idProgressoTrilha.toString(),
+                title: item.trilha.nome,
+                description: item.trilha.descricao,
+                totalModules: item.trilha.modulosTotais,
+                completedModules: item.modulosConcluidos,
+                totalHours: item.trilha.horasTotais,
+                difficulty: item.trilha.nivel,
+                status: item.status,
+                startedAt: item.dataInicio,
+                finishedAt: item.dataConclusao,
+            }));
+            setTrails(mappedTrails);
+        } catch (e) {
+            console.error("Erro ao carregar trilhas:", e);
+            setTrails([]);
+        } finally {
+            setLoadingTrails(false);
+        }
+    };
+
+    const loadAvailableTrails = async () => {
+        setLoadingAvailableTrails(true);
+        try {
+            const resp = await TutorAPI.trilhasDisponiveis<TutorAvailableTrailsResponse>(token);
+            const mapped: TrailProgressCardData[] = (resp?.content ?? []).map((item) => ({
+                id: item.idTrilha.toString(),
+                title: item.nome,
+                description: item.descricao,
+                totalModules: item.modulosTotais,
+                completedModules: 0,
+                totalHours: item.horasTotais,
+                difficulty: item.nivel,
+                status: "NAO_INICIADA",
+                startedAt: null,
+                finishedAt: null,
+            }));
+            setAvailableTrails(mapped);
+        } catch (e) {
+            console.error("Erro ao carregar trilhas disponíveis:", e);
+            setAvailableTrails([]);
+        } finally {
+            setLoadingAvailableTrails(false);
+        }
+    };
+
     useEffect(() => {
         loadPets();
+        loadTrails();
+        loadAvailableTrails();
     }, [token]);
-
-    const mockTrails = [
-        {
-            id: "1",
-            title: "Cuidados Básicos para Cães",
-            description: "Aprenda os fundamentos essenciais para cuidar do seu cão com amor e responsabilidade.",
-            modules: 3,
-            completedModules: 2,
-            points: 300,
-            difficulty: "Básico" as const,
-            estimatedTime: "2h"
-        },
-        {
-            id: "2",
-            title: "Nutrição Felina Avançada",
-            description: "Domine os conceitos de alimentação balanceada e necessidades nutricionais dos gatos.",
-            modules: 3,
-            completedModules: 3,
-            points: 450,
-            difficulty: "Intermediário" as const,
-            estimatedTime: "3h"
-        },
-        {
-            id: "3",
-            title: "Primeiros Socorros para Pets",
-            description: "Saiba como agir em emergências e prestar primeiros socorros aos seus pets.",
-            modules: 3,
-            completedModules: 0,
-            points: 500,
-            difficulty: "Avançado" as const,
-            estimatedTime: "4h"
-        }
-    ];
-
 
     const handleEditPet = (pet: unknown) => {
         console.log("Editar pet:", pet);
@@ -155,22 +206,52 @@ const TutorDashboard = () => {
                     )}
                 </section>
 
-                {/* Trilhas de Aprendizado Section */}
+                {/* Minhas Trilhas Section */}
                 <section>
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold text-foreground">Trilhas de Aprendizado</h2>
+                        <h2 className="text-2xl font-bold text-foreground">Minhas Trilhas</h2>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {mockTrails.map((trail) => (
-                            <TrailCard
-                                key={trail.id}
-                                trail={trail}
-                                onStart={handleStartTrail}
-                                onContinue={handleContinueTrail}
-                            />
-                        ))}
+                    {loadingTrails ? (
+                        <div className="text-muted-foreground">Carregando trilhas…</div>
+                    ) : trails.length === 0 ? (
+                        <div className="text-muted-foreground">Você ainda não possui trilhas iniciadas.</div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {trails.map((trail) => (
+                                <TrailCard
+                                    key={trail.id}
+                                    trail={trail}
+                                    onStart={handleStartTrail}
+                                    onContinue={handleContinueTrail}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </section>
+
+                {/* Trilhas Disponíveis Section */}
+                <section>
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-bold text-foreground">Trilhas Disponíveis</h2>
                     </div>
+
+                    {loadingAvailableTrails ? (
+                        <div className="text-muted-foreground">Carregando trilhas disponíveis…</div>
+                    ) : availableTrails.length === 0 ? (
+                        <div className="text-muted-foreground">Nenhuma trilha disponível no momento.</div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {availableTrails.map((trail) => (
+                                <TrailCard
+                                    key={trail.id}
+                                    trail={trail}
+                                    onStart={handleStartTrail}
+                                    onContinue={handleContinueTrail}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </section>
             </main>
         </div>
