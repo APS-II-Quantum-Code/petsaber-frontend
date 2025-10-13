@@ -64,6 +64,16 @@ export const TutorAPI = {
     apiFetch<T>("/tutor/trilhas/minhas-trilhas", { method: "GET", token }),
   trilhasDisponiveis: <T>(token: string | null) =>
     apiFetch<T>("/tutor/trilhas", { method: "GET", token }),
+  trilhaMeuProgresso: <T>(trailId: string, token: string | null) =>
+    apiFetch<T>(`/tutor/trilhas/${trailId}/meu-progresso`, { method: "GET", token }),
+  iniciarTrilha: <T>(trailId: string, token: string | null) =>
+    apiFetch<T>(`/tutor/trilhas/${trailId}/iniciar`, { method: "POST", token }),
+  moduloDetalhes: <T>(moduloId: string, token: string | null) =>
+    apiFetch<T>(`/tutor/modulos/${moduloId}`, { method: "GET", token }),
+  exerciciosDoModulo: <T>(moduloId: string, token: string | null) =>
+    apiFetch<T>(`/tutor/modulos/${moduloId}/exercicios`, { method: "GET", token }),
+  responderExercicio: <T>(exercicioId: number | string, alternativaId: number, token: string | null) =>
+    apiFetch<T>(`/tutor/exercicios/${exercicioId}/responder`, { method: "POST", token, body: { idAlternativaEscolhida: alternativaId } }),
 };
 
 export const EspecieAPI = {

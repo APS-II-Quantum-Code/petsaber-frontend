@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 
 export interface TrailProgressCardData {
   id: string;
+  trailId: string;
+  progressId?: string | null;
   title: string;
   description: string;
   totalModules: number;
@@ -20,52 +22,19 @@ export interface TrailProgressCardData {
 
 interface TrailCardProps {
   trail: TrailProgressCardData;
-  onStart: (trailId: string) => void;
-  onContinue: (trailId: string) => void;
+  onStart: (trail: TrailProgressCardData) => void;
+  onContinue: (trail: TrailProgressCardData) => void;
+  variant?: "my" | "available"; // controla estilização/CTA
 }
 
-const TrailCard = ({ trail, onStart, onContinue }: TrailCardProps) => {
+const TrailCard = ({ trail, onStart, onContinue, variant = "my" }: TrailCardProps) => {
   const progress = trail.totalModules > 0 ? (trail.completedModules / trail.totalModules) * 100 : 0;
-  const isCompleted = trail.status === "CONCLUIDA";
-  const isStarted = !isCompleted && trail.status !== "NAO_INICIADA";
+  // Determinar concluída/iniciada baseado em números ao invés de strings
+  const isCompleted = trail.totalModules > 0 && trail.completedModules >= trail.totalModules;
+  const isStarted = trail.completedModules > 0 || !!trail.startedAt;
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty.toLowerCase()) {
-      case "básico":
-      case "basico":
-        return "bg-green-100 text-green-800";
-      case "intermediário":
-      case "intermediario":
-        return "bg-yellow-100 text-yellow-800";
-      case "avançado":
-      case "avancado":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const formatDifficulty = (level: string) => {
-    const mapping: Record<string, string> = {
-      INICIANTE: "Básico",
-      INTERMEDIARIO: "Intermediário",
-      INTERMEDIÁRIO: "Intermediário",
-      AVANÇADO: "Avançado",
-      AVANCADO: "Avançado",
-    };
-    return mapping[level] || level;
-  };
-
-  const formatStatus = (status: string) => {
-    const mapping: Record<string, string> = {
-      NAO_INICIADA: "Não iniciada",
-      EM_ANDAMENTO: "Em andamento",
-      CONCLUIDA: "Concluída",
-    };
-    return mapping[status] || status;
-  };
-
-  const difficultyLabel = formatDifficulty(trail.difficulty);
+  // Exibir diretamente os valores tratados vindos do backend
+  const difficultyLabel = trail.difficulty;
 
   return (
     <Card className="group hover:shadow-card transition-all duration-200">
@@ -82,11 +51,20 @@ const TrailCard = ({ trail, onStart, onContinue }: TrailCardProps) => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary" className={getDifficultyColor(difficultyLabel)}>
+            <Badge variant="secondary">
               {difficultyLabel}
             </Badge>
-            <Badge variant="outline" className="text-xs">
-              {formatStatus(trail.status)}
+            <Badge
+              variant="outline"
+              className={`text-xs ${(() => {
+                const s = (trail.status || "").toLowerCase();
+                if (s.includes("conclu")) return "border-green-300 text-green-700 bg-green-50";
+                if (s.includes("andament")) return "border-blue-300 text-blue-700 bg-blue-50";
+                if (s.includes("não") || s.includes("nao") || s.includes("inic")) return "border-gray-300 text-gray-700 bg-gray-50";
+                return "border-muted text-foreground";
+              })()}`}
+            >
+              {trail.status}
             </Badge>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
@@ -94,7 +72,7 @@ const TrailCard = ({ trail, onStart, onContinue }: TrailCardProps) => {
             </div>
           </div>
 
-          {trail.totalModules > 0 && (
+          {variant === "my" && trail.totalModules > 0 && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Progresso</span>
@@ -110,26 +88,26 @@ const TrailCard = ({ trail, onStart, onContinue }: TrailCardProps) => {
           </div>
 
           <div className="pt-2">
-            {isCompleted ? (
+            {isCompleted && variant === "my" ? (
               <Button variant="success" className="w-full" disabled>
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Concluída
               </Button>
-            ) : isStarted ? (
-              <Button
-                variant="default"
-                className="w-full"
-                onClick={() => onContinue(trail.id)}
-              >
-                Continuar Trilha
-              </Button>
-            ) : (
+            ) : variant === "available" ? (
               <Button
                 variant="hero"
                 className="w-full"
-                onClick={() => onStart(trail.id)}
+                onClick={() => onStart(trail)}
               >
                 Iniciar Trilha
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                className="w-full"
+                onClick={() => onContinue(trail)}
+              >
+                Continuar Trilha
               </Button>
             )}
           </div>

@@ -91,6 +91,8 @@ const TutorDashboard = () => {
             const resp = await TutorAPI.minhasTrilhas<TutorTrailProgressResponse>(token);
             const mappedTrails: TrailProgressCardData[] = (resp?.content ?? []).map((item) => ({
                 id: item.idProgressoTrilha.toString(),
+                trailId: item.trilha.idTrilha.toString(),
+                progressId: item.idProgressoTrilha.toString(),
                 title: item.trilha.nome,
                 description: item.trilha.descricao,
                 totalModules: item.trilha.modulosTotais,
@@ -116,13 +118,14 @@ const TutorDashboard = () => {
             const resp = await TutorAPI.trilhasDisponiveis<TutorAvailableTrailsResponse>(token);
             const mapped: TrailProgressCardData[] = (resp?.content ?? []).map((item) => ({
                 id: item.idTrilha.toString(),
+                trailId: item.idTrilha.toString(),
                 title: item.nome,
                 description: item.descricao,
                 totalModules: item.modulosTotais,
                 completedModules: 0,
                 totalHours: item.horasTotais,
                 difficulty: item.nivel,
-                status: "NAO_INICIADA",
+                status: "Não Iniciada",
                 startedAt: null,
                 finishedAt: null,
             }));
@@ -155,12 +158,54 @@ const TutorDashboard = () => {
         }
     };
 
-    const handleStartTrail = (trailId: string) => {
-        console.log("Iniciar trilha:", trailId);
+    const handleStartTrail = async (trail: TrailProgressCardData) => {
+        try {
+            const resp = await TutorAPI.iniciarTrilha<{
+                idProgressoTrilha: number;
+                dataInicio: string | null;
+                dataConclusao: string | null;
+                status: string;
+                modulosConcluidos: number;
+                trilha: {
+                    idTrilha: number;
+                    nome: string;
+                    descricao: string;
+                    nivel: string;
+                    horasTotais: number;
+                    modulosTotais: number;
+                };
+            }>(trail.trailId, token);
+
+            const started: TrailProgressCardData = {
+                id: String(resp.idProgressoTrilha),
+                trailId: String(resp.trilha.idTrilha),
+                progressId: String(resp.idProgressoTrilha),
+                title: resp.trilha.nome,
+                description: resp.trilha.descricao,
+                totalModules: resp.trilha.modulosTotais,
+                completedModules: resp.modulosConcluidos,
+                totalHours: resp.trilha.horasTotais,
+                difficulty: resp.trilha.nivel,
+                status: resp.status,
+                startedAt: resp.dataInicio,
+                finishedAt: resp.dataConclusao,
+            };
+
+            setTrails((prev) => {
+                const others = prev.filter((t) => t.trailId !== started.trailId);
+                return [started, ...others];
+            });
+            setAvailableTrails((prev) => prev.filter((t) => t.trailId !== started.trailId));
+
+            navigate(`/trail/${started.trailId}`, { state: { trail: started } });
+            toast({ title: "Trilha iniciada", description: `Você iniciou: ${started.title}` });
+        } catch (e) {
+            console.error("Erro ao iniciar trilha:", e);
+        }
     };
 
-    const handleContinueTrail = (trailId: string) => {
-        console.log("Continuar trilha:", trailId);
+    const handleContinueTrail = (trail: TrailProgressCardData) => {
+        navigate(`/trail/${trail.trailId}`, { state: { trail } });
     };
 
     const navigate = useNavigate(); // Hook para navegação
@@ -224,6 +269,7 @@ const TutorDashboard = () => {
                                     trail={trail}
                                     onStart={handleStartTrail}
                                     onContinue={handleContinueTrail}
+                                    variant="my"
                                 />
                             ))}
                         </div>
@@ -248,6 +294,7 @@ const TutorDashboard = () => {
                                     trail={trail}
                                     onStart={handleStartTrail}
                                     onContinue={handleContinueTrail}
+                                    variant="available"
                                 />
                             ))}
                         </div>
