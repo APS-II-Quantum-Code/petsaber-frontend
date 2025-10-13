@@ -1,117 +1,134 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
+import { ArrowLeft, BookOpen, CheckCircle, XCircle, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import Header from "@/components/layout/Header";
+import { useToast } from "@/hooks/use-toast";
+import { TutorAPI } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 const Module = () => {
   const { trailId, moduleId } = useParams();
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
+  const { toast } = useToast();
 
-  // Mock data - seria buscado baseado no trailId e moduleId
-  const moduleData = {
-    title: "Fundamentos da Raça",
-    level: "Básico",
-    totalPages: 3,
-    content: [
-      {
-        page: 1,
-        title: "História do Golden Retriever",
-        content: `O Golden Retriever é uma raça de cães de médio a grande porte, originária da Escócia no século XIX. 
-        
-Desenvolvida por Dudley Marjoribanks, 1º Barão de Tweedmouth, a raça foi criada através do cruzamento cuidadoso de Retrievers amarelos com Tweed Water Spaniels (agora extintos).
+  // Backend-driven state
+  const { token } = useAuth();
+  type ModuloDetalhes = {
+    idModulo: number;
+    nome: string;
+    descricao: string;
+    duracaoHoras: number;
+    conteudo: string;
+  };
+  type Alternativa = { idAlternativa: number; conteudo: string };
+  type Exercicio = { idExercicio: number; nome: string; descricao: string; alternativas: Alternativa[] };
 
-**Características principais:**
-- Inteligente e amigável
-- Ótimo com crianças
-- Excelente cão de família
-- Adora água e atividades ao ar livre
-- Pelagem dourada característica
+  const [moduleDetails, setModuleDetails] = useState<ModuloDetalhes | null>(null);
+  const [exercises, setExercises] = useState<Exercicio[]>([]);
+  const [loadingModule, setLoadingModule] = useState(false);
+  const [loadingExercises, setLoadingExercises] = useState(false);
+  const [errorModule, setErrorModule] = useState<string | null>(null);
+  const [errorExercises, setErrorExercises] = useState<string | null>(null);
 
-O Golden Retriever foi reconhecido pelo Kennel Club britânico em 1911 e rapidamente se tornou uma das raças mais populares do mundo.`,
-      },
-      {
-        page: 2,
-        title: "Temperamento e Personalidade",
-        content: `Os Golden Retrievers são conhecidos por seu temperamento excepcionalmente dócil e amigável.
+  useEffect(() => {
+    const id = moduleId ?? "";
+    if (!token || !id) return;
+    const fetchData = async () => {
+      setLoadingModule(true);
+      setErrorModule(null);
+      try {
+        const details = await TutorAPI.moduloDetalhes<ModuloDetalhes>(id, token);
+        setModuleDetails(details);
+      } catch (e: any) {
+        setErrorModule(e?.message || "Erro ao carregar módulo");
+      } finally {
+        setLoadingModule(false);
+      }
 
-**Principais características comportamentais:**
-- **Sociabilidade**: Adora estar perto de pessoas e outros animais
-- **Inteligência**: Facilmente treinável, uma das raças mais inteligentes
-- **Energia**: Nível alto de energia, precisa de exercícios diários
-- **Lealdade**: Extremamente leal à família
-- **Paciência**: Tolera bem crianças pequenas
+      setLoadingExercises(true);
+      setErrorExercises(null);
+      try {
+        const list = await TutorAPI.exerciciosDoModulo<Exercicio[]>(id, token);
+        setExercises(list ?? []);
+      } catch (e: any) {
+        setErrorExercises(e?.message || "Erro ao carregar exercícios");
+        setExercises([]);
+      } finally {
+        setLoadingExercises(false);
+      }
+    };
+    fetchData();
+  }, [moduleId, token]);
 
-Esses cães foram criados para trabalhar junto aos humanos, o que explica sua natureza cooperativa. Eles se destacam em:
-- Terapia assistida
-- Cães-guia
-- Busca e resgate
-- Competições de obediência`,
-      },
-      {
-        page: 3,
-        title: "Necessidades de Socialização",
-        content: `A socialização adequada é crucial para o desenvolvimento saudável de um Golden Retriever.
+  const getMutedBadge = () => "bg-muted text-muted-foreground border-muted";
 
-**Período crítico:** Entre 3 e 14 semanas de idade
+  // Exercícios integrados ao final do módulo
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({}); // idExercicio -> idAlternativa
+  const [showResults, setShowResults] = useState(false);
+  const totalQuestions = exercises.length;
+  const progressQuiz = totalQuestions > 0 ? ((currentQuestion + 1) / totalQuestions) * 100 : 0;
+  const currentQ = exercises[currentQuestion];
+  const [correctMap, setCorrectMap] = useState<Record<number, boolean>>({}); // idExercicio -> correta?
+  const [submitting, setSubmitting] = useState(false);
+  const [submittedMap, setSubmittedMap] = useState<Record<number, boolean>>({}); // idExercicio -> enviado?
 
-**Aspectos importantes da socialização:**
-
-1. **Exposição a diferentes ambientes**
-   - Parques, ruas movimentadas, ambientes internos
-   - Diferentes tipos de pisos e superfícies
-
-2. **Interação com pessoas diversas**
-   - Adultos, crianças, idosos
-   - Pessoas com diferentes aparências
-
-3. **Contato com outros animais**
-   - Outros cães de diversos portes
-   - Gatos e outros pets domésticos
-
-4. **Experiências positivas**
-   - Sempre associar novidades com recompensas
-   - Manter as interações calmas e positivas
-
-Uma socialização adequada resulta em um cão confiante, equilibrado e feliz!`,
-      },
-    ],
+  const handleSelectAnswer = (altId: number) => {
+    const ex = currentQ?.idExercicio;
+    if (!ex || submitting) return;
+    // Permite alterar a seleção antes da confirmação, se ainda não enviado
+    if (submittedMap[ex]) return;
+    setSelectedAnswers((prev) => ({ ...prev, [ex]: altId }));
   };
 
-  const progress = (currentPage / moduleData.totalPages) * 100;
+  const handleConfirmAnswer = async () => {
+    const ex = currentQ?.idExercicio;
+    if (!ex || submitting) return;
+    if (submittedMap[ex]) return;
+    const altId = selectedAnswers[ex];
+    if (altId === undefined) return;
+    setSubmitting(true);
+    try {
+      const resp = await TutorAPI.responderExercicio<{ correta: string }>(ex, altId, token);
+      const isCorrect = String((resp as any)?.correta).toLowerCase() === "true";
+      setCorrectMap((prev) => ({ ...prev, [ex]: isCorrect }));
+      setSubmittedMap((prev) => ({ ...prev, [ex]: true }));
+      toast({
+        title: isCorrect ? "Resposta correta" : "Resposta incorreta",
+        description: isCorrect ? "Muito bem!" : "Revise o conteúdo e tente novamente.",
+        variant: isCorrect ? "default" : "destructive",
+      });
+    } catch (e: any) {
+      toast({ title: "Erro ao enviar resposta", description: e?.message || "Tente novamente.", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-  const handleNext = () => {
-    if (currentPage < moduleData.totalPages) {
-      setCurrentPage(currentPage + 1);
+  const handleNextQuestion = () => {
+    if (!currentQ) return;
+    // Só avança se a resposta do exercício atual já foi enviada (confirmada)
+    if (!submittedMap[currentQ.idExercicio]) return;
+    if (currentQuestion < totalQuestions - 1) {
+      setCurrentQuestion(currentQuestion + 1);
     } else {
-      navigate(`/quiz/${trailId}/${moduleId}`);
+      setShowResults(true);
     }
   };
 
-  const handlePrevious = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+  const handlePreviousQuestion = () => {
+    if (currentQuestion > 0) setCurrentQuestion(currentQuestion - 1);
   };
 
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case "Básico":
-        return "bg-green-500/10 text-green-700 border-green-500/20";
-      case "Intermediário":
-        return "bg-blue-500/10 text-blue-700 border-blue-500/20";
-      case "Avançado":
-        return "bg-purple-500/10 text-purple-700 border-purple-500/20";
-      default:
-        return "bg-muted";
-    }
+  const handleFinish = () => {
+    const answered = Object.keys(selectedAnswers).length;
+    toast({ title: "Exercícios concluídos", description: `Você respondeu ${answered} de ${totalQuestions} exercícios.` });
+    setTimeout(() => { navigate(`/trail/${trailId}`); }, 2000);
   };
-
-  const currentContent = moduleData.content[currentPage - 1];
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -132,74 +149,185 @@ Uma socialização adequada resulta em um cão confiante, equilibrado e feliz!`,
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <BookOpen className="h-6 w-6 text-primary" />
-                  <CardTitle className="text-2xl">{moduleData.title}</CardTitle>
+                  <CardTitle className="text-2xl">{moduleDetails?.nome || (loadingModule ? "Carregando..." : "Módulo")}</CardTitle>
                 </div>
-                <Badge variant="outline" className={getLevelColor(moduleData.level)}>
-                  {moduleData.level}
-                </Badge>
+                {moduleDetails && (
+                  <Badge variant="outline" className={getMutedBadge()}>
+                    {moduleDetails.duracaoHoras}h
+                  </Badge>
+                )}
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Progresso do módulo</span>
-                  <span className="font-medium">
-                    Página {currentPage} de {moduleData.totalPages}
-                  </span>
-                </div>
-                <Progress value={progress} />
-              </div>
+              <p className="text-sm text-muted-foreground">Todo o conteúdo do módulo está abaixo. Role para ler tudo e, ao final, faça o exercício.</p>
             </CardHeader>
           </Card>
 
           <Card className="shadow-card mb-6">
             <CardHeader>
-              <CardTitle className="text-xl">{currentContent.title}</CardTitle>
+              <CardTitle className="text-xl">Conteúdo do Módulo</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-slate max-w-none">
-                {currentContent.content.split('\n').map((paragraph, index) => {
-                  if (paragraph.trim().startsWith('**') && paragraph.trim().endsWith('**')) {
-                    return (
-                      <h3 key={index} className="font-semibold text-lg mt-4 mb-2">
-                        {paragraph.replace(/\*\*/g, '')}
-                      </h3>
-                    );
-                  }
-                  if (paragraph.trim().startsWith('-')) {
-                    return (
-                      <li key={index} className="ml-4 mb-1">
-                        {paragraph.replace(/^-\s*/, '')}
-                      </li>
-                    );
-                  }
-                  if (paragraph.trim()) {
-                    return (
-                      <p key={index} className="mb-3 text-muted-foreground leading-relaxed">
-                        {paragraph}
-                      </p>
-                    );
-                  }
-                  return <br key={index} />;
-                })}
+              <div className="prose prose-slate max-w-none max-h-[60vh] overflow-y-auto pr-2">
+                {loadingModule && <p className="text-muted-foreground">Carregando conteúdo…</p>}
+                {errorModule && <p className="text-destructive">{errorModule}</p>}
+                {moduleDetails && (
+                  <div className="mb-8">
+                    {moduleDetails.descricao && (
+                      <p className="mb-3 text-sm text-muted-foreground">{moduleDetails.descricao}</p>
+                    )}
+                    {moduleDetails.conteudo.split('\n').map((paragraph, index) => (
+                      paragraph.trim() ? (
+                        <p key={index} className="mb-3 text-muted-foreground leading-relaxed">{paragraph}</p>
+                      ) : (
+                        <br key={index} />
+                      )
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentPage === 1}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Anterior
-            </Button>
+          {showResults ? (
+            <div className="max-w-4xl mx-auto">
+              <Card className="shadow-card text-center">
+                <CardHeader>
+                  <div className="flex justify-center mb-4">
+                    <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Award className="h-12 w-12 text-primary" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-3xl mb-2">Exercícios concluídos</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Total de exercícios</span>
+                        <span className="font-medium">{totalQuestions}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Respondidos</span>
+                        <span className="font-medium">{Object.keys(selectedAnswers).length}</span>
+                      </div>
+                    </div>
+                  </>
 
-            <Button onClick={handleNext} className="gap-2">
-              {currentPage === moduleData.totalPages ? "Ir para Quiz" : "Próxima"}
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </div>
+                  <div className="space-y-3 pt-4 text-left">
+                    {exercises.map((ex) => {
+                      const isCorrect = correctMap[ex.idExercicio];
+                      return (
+                        <div key={ex.idExercicio} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                          {isCorrect ? (
+                            <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
+                          ) : (
+                            <XCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+                          )}
+                          <span className="text-sm">{ex.nome}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button variant="outline" className="flex-1" onClick={() => { setShowResults(false); setCurrentQuestion(0); setSelectedAnswers({}); }}>
+                      Tentar Novamente
+                    </Button>
+                    <Button className="flex-1" onClick={handleFinish}>
+                      Voltar para Trilha
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="max-w-4xl mx-auto">
+              <Card className="shadow-card mb-6">
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-4">
+                    <CardTitle className="text-2xl">Exercício</CardTitle>
+                    <Badge variant="outline" className={getMutedBadge()}>
+                      {totalQuestions} itens
+                    </Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium">Questão {totalQuestions > 0 ? currentQuestion + 1 : 0} de {totalQuestions}</span>
+                    </div>
+                    <Progress value={progressQuiz} />
+                  </div>
+                </CardHeader>
+              </Card>
+
+              <Card className="shadow-card mb-6">
+                <CardHeader>
+                  <CardTitle className="text-lg">{loadingExercises ? "Carregando exercício…" : currentQ?.nome || "Sem exercícios"}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {errorExercises && <p className="text-destructive">{errorExercises}</p>}
+                    {!loadingExercises && currentQ?.alternativas?.map((alt) => {
+                      const exId = currentQ.idExercicio;
+                      const isSelected = selectedAnswers[exId] === alt.idAlternativa;
+                      const hasAnswer = correctMap[exId] !== undefined;
+                      const isCorrect = hasAnswer && isSelected ? correctMap[exId] : undefined;
+                      const base = 'w-full p-4 rounded-lg border-2 text-left transition-all';
+                      const stateClass = isSelected
+                        ? (isCorrect === undefined
+                            ? 'border-primary bg-primary/5'
+                            : isCorrect
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-red-500 bg-red-50')
+                        : 'border-border hover:border-primary/50 hover:bg-accent/5';
+                      return (
+                        <button
+                          key={alt.idAlternativa}
+                          onClick={() => handleSelectAnswer(alt.idAlternativa)}
+                          disabled={hasAnswer || submitting}
+                          className={`${base} ${stateClass}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                              isSelected
+                                ? isCorrect === undefined
+                                  ? 'border-primary bg-primary'
+                                  : isCorrect
+                                    ? 'border-green-500 bg-green-500'
+                                    : 'border-red-500 bg-red-500'
+                                : 'border-muted-foreground'
+                            }`}>
+                              {isSelected && (
+                                <CheckCircle className="h-3 w-3 text-primary-foreground" />
+                              )}
+                            </div>
+                            <span className="font-medium">{alt.conteudo}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex items-center justify-between gap-3">
+                <Button variant="outline" onClick={handlePreviousQuestion} disabled={currentQuestion === 0 || submitting}>Anterior</Button>
+                <div className="flex gap-3">
+                  <Button
+                    variant="secondary"
+                    onClick={handleConfirmAnswer}
+                    disabled={!currentQ || submittedMap[currentQ.idExercicio] || selectedAnswers[currentQ.idExercicio] === undefined || submitting}
+                  >
+                    Confirmar Resposta
+                  </Button>
+                  <Button
+                    onClick={handleNextQuestion}
+                    disabled={!currentQ || !submittedMap[currentQ.idExercicio] || submitting}
+                  >
+                    {currentQuestion === totalQuestions - 1 ? "Finalizar" : "Próxima"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

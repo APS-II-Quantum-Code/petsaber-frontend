@@ -28,7 +28,7 @@ const EditProfile = () => {
     });
     
     setTimeout(() => {
-      navigate("/");
+      navigate("/me");
     }, 1000);
   };
 
@@ -38,7 +38,7 @@ const EditProfile = () => {
       <div className="container mx-auto py-8 px-4">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
-            <Link to="/">
+            <Link to="/me">
               <Button variant="ghost" size="sm" className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 Voltar
@@ -110,7 +110,7 @@ const EditProfile = () => {
                   <Button 
                     type="button" 
                     variant="outline" 
-                    onClick={() => navigate("/")}
+                    onClick={() => navigate("/me")}
                   >
                     Cancelar
                   </Button>

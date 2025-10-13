@@ -144,7 +144,7 @@ const AddPet = () => {
             <div className="container mx-auto py-8 px-4">
                 <div className="max-w-2xl mx-auto">
                     <div className="flex items-center gap-4 mb-6">
-                        <Link to="/">
+                        <Link to="/me">
                             <Button variant="ghost" size="sm" className="gap-2">
                                 <ArrowLeft className="h-4 w-4"/>
                                 Voltar
@@ -362,7 +362,7 @@ const AddPet = () => {
                                     <Button type="submit" className="flex-1" size="lg" disabled={isSubmitting}>
                                         {isSubmitting ? "Cadastrando..." : "Cadastrar Pet"}
                                     </Button>
-                                    <Link to="/" className="flex-1">
+                                    <Link to="/me" className="flex-1">
                                         <Button variant="outline" className="w-full" size="lg">
                                             Cancelar
                                         </Button>
