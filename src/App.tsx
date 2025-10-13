@@ -14,10 +14,13 @@ import TrailDetails from "./pages/TrailDetails";
 import Module from "./pages/Module";
 import Quiz from "./pages/Quiz";
 import NotFound from "./pages/NotFound";
+import CreatTrail from "./pages/admin/CreatTrail";
+import CreatModule from "./pages/admin/CreatModule";
+import CreatContent from "./pages/admin/CreatContent";
 import LandingPage from "@/pages/LandingPage.tsx";
 import {AuthProvider, useAuth} from "@/context/AuthContext";
 import TutorDashboard from "@/pages/TutorDashboard";
-import ConsultantDashboard from "@/pages/ConsultantDashboard";
+import ConsultantDashboard from "@/pages/admin/ConsultantDashboard";
 import {ProtectedRoute, RoleRoute} from "@/routes/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -55,9 +58,13 @@ const App = () => (
                             <Route path="/trail/:id" element={<TrailDetails/>}/>
                             <Route path="/module/:trailId/:moduleId" element={<Module/>}/>
                             <Route path="/quiz/:trailId/:moduleId" element={<Quiz/>}/>
+                            <Route path="/admin/create-trail" element={<CreatTrail />} />
+                            <Route path="/admin/create-module/:trailId" element={<CreatModule />} />
+                            <Route path="/admin/create-content/:trailId/:moduleId" element={<CreatContent />} />
                         </Route>
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound/>}/>
+                        
                     </Routes>
                 </AuthProvider>
             </BrowserRouter>
