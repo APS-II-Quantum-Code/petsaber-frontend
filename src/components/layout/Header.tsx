@@ -1,4 +1,4 @@
-import { Heart, User, BookOpen, Trophy, Settings, LogOut, UserCircle, Info } from "lucide-react";
+import { Heart, User, BookOpen, Trophy, Settings, LogOut, UserCircle, Info, PawPrint } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -85,6 +85,12 @@ const Header = () => {
               <DropdownMenuItem onClick={() => navigate("/account-info")}>
                 <Info className="mr-2 h-4 w-4" />
                 Informações da conta
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Administração</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => navigate("/admin/create-trail")}>
+                <PawPrint className="mr-2 h-4 w-4" />
+                Criar trilha
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
