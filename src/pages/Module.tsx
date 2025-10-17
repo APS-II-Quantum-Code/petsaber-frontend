@@ -70,6 +70,8 @@ const Module = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({}); // idExercicio -> idAlternativa
   const [showResults, setShowResults] = useState(false);
+  const [finalPercent, setFinalPercent] = useState<number | null>(null);
+  const [finalResultError, setFinalResultError] = useState<string | null>(null);
   const totalQuestions = exercises.length;
   const progressQuiz = totalQuestions > 0 ? ((currentQuestion + 1) / totalQuestions) * 100 : 0;
   const currentQ = exercises[currentQuestion];
@@ -124,11 +126,28 @@ const Module = () => {
     if (currentQuestion > 0) setCurrentQuestion(currentQuestion - 1);
   };
 
-  const handleFinish = () => {
-    const answered = Object.keys(selectedAnswers).length;
-    toast({ title: "Exercícios concluídos", description: `Você respondeu ${answered} de ${totalQuestions} exercícios.` });
+  const handleFinish = async () => {
+    // Apenas navega de volta; o resultado já é exibido inline na tela de resultados
     setTimeout(() => { navigate(`/trail/${trailId}`); }, 2000);
   };
+
+  // Assim que o usuário finalizar a última questão e abrir a tela de resultados,
+  // buscamos o percentual no backend e exibimos inline no mesmo box.
+  useEffect(() => {
+    const fetchPercent = async () => {
+      try {
+        const moduloId = moduleId ?? "";
+        if (!showResults || !token || !moduloId) return;
+        setFinalResultError(null);
+        const prog = await TutorAPI.moduloMeuProgresso<{ idModulo: number; nomeModulo: string; status: string; percentualAcerto: number }>(moduloId, token);
+        const pct = Number((prog as any)?.percentualAcerto ?? 0);
+        setFinalPercent(pct);
+      } catch (e: any) {
+        setFinalResultError(e?.message || "Não foi possível obter o percentual. Tente novamente.");
+      }
+    };
+    fetchPercent();
+  }, [showResults, moduleId, token]);
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -211,6 +230,24 @@ const Module = () => {
                       </div>
                     </div>
                   </>
+
+                  <div className="pt-2">
+                    {finalResultError ? (
+                      <p className="text-sm text-destructive">{finalResultError}</p>
+                    ) : finalPercent === null ? (
+                      <p className="text-sm text-muted-foreground">Calculando seu aproveitamento…</p>
+                    ) : (
+                      <div className="rounded-md border p-4 text-left">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Aproveitamento</span>
+                          <span className="text-base font-semibold">{finalPercent.toFixed(2)}%</span>
+                        </div>
+                        <div className={`mt-2 text-sm font-medium ${finalPercent > 75 ? "text-green-600" : "text-red-600"}`}>
+                          {finalPercent > 75 ? "Você passou na trilha!" : "Você não passou na trilha. Tente novamente."}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="space-y-3 pt-4 text-left">
                     {exercises.map((ex) => {

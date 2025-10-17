@@ -7,11 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import Header from "@/components/layout/Header";
 import { useToast } from "@/hooks/use-toast";
+import { TutorAPI } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 const Quiz = () => {
   const { trailId, moduleId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { token } = useAuth();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -110,28 +113,6 @@ const Quiz = () => {
       }
     });
     return correct;
-  };
-
-  const handleFinish = () => {
-    const score = calculateScore();
-    const percentage = (score / quizData.questions.length) * 100;
-    
-    if (percentage >= 70) {
-      toast({
-        title: "Parabéns! 🎉",
-        description: `Você acertou ${score} de ${quizData.questions.length} questões!`,
-      });
-    } else {
-      toast({
-        title: "Continue tentando! 💪",
-        description: `Você acertou ${score} de ${quizData.questions.length} questões. Revise o material e tente novamente.`,
-        variant: "destructive",
-      });
-    }
-    
-    setTimeout(() => {
-      navigate(`/trail/${trailId}`);
-    }, 2000);
   };
 
   const getLevelColor = (level: string) => {

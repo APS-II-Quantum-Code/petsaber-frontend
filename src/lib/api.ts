@@ -74,6 +74,8 @@ export const TutorAPI = {
     apiFetch<T>(`/tutor/modulos/${moduloId}/exercicios`, { method: "GET", token }),
   responderExercicio: <T>(exercicioId: number | string, alternativaId: number, token: string | null) =>
     apiFetch<T>(`/tutor/exercicios/${exercicioId}/responder`, { method: "POST", token, body: { idAlternativaEscolhida: alternativaId } }),
+  moduloMeuProgresso: <T>(moduloId: string | number, token: string | null) =>
+    apiFetch<T>(`/tutor/modulos/${moduloId}/meu-progresso`, { method: "GET", token }),
 };
 
 export const EspecieAPI = {
