@@ -23,7 +23,19 @@ const WelcomeCard = () => {
                   Cadastrar Pet
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="gap-2">
+              <Button
+                variant="outline"
+                size="lg"
+                className="gap-2"
+                onClick={() => {
+                  const target =
+                    document.getElementById("minhas-trilhas") ||
+                    document.getElementById("trilhas-disponiveis");
+                  if (target) {
+                    target.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }
+                }}
+              >
                 <Heart className="h-5 w-5" />
                 Ver Trilhas
               </Button>

@@ -56,14 +56,35 @@ export const AuthAPI = {
 };
 
 export const TutorAPI = {
+  meusDados: <T>(token: string | null) =>
+    apiFetch<T>("/tutor/meus-dados", { method: "GET", token }),
   meuProgresso: <T>(token: string | null) =>
     apiFetch<T>("/tutor/meu-progresso", { method: "GET", token }),
   buscarPets: <T>(token: string | null) =>
     apiFetch<T>("/tutor/buscar-pets", { method: "GET", token }),
   minhasTrilhas: <T>(token: string | null) =>
     apiFetch<T>("/tutor/trilhas/minhas-trilhas", { method: "GET", token }),
-  trilhasDisponiveis: <T>(token: string | null) =>
-    apiFetch<T>("/tutor/trilhas", { method: "GET", token }),
+  trilhasDisponiveis: <T>(
+    token: string | null,
+    opts?: { idRaca?: string | number; nivel?: "INICIANTE" | "INTERMEDIARIO" | "AVANCADO"; page?: number; size?: number }
+  ) => {
+    const params = new URLSearchParams();
+    if (opts?.idRaca !== undefined && opts?.idRaca !== null && String(opts.idRaca).length > 0) {
+      params.set("idRaca", String(opts.idRaca));
+    }
+    if (opts?.nivel) {
+      params.set("nivel", opts.nivel);
+    }
+    if (typeof opts?.page === "number") {
+      params.set("page", String(opts.page));
+    }
+    if (typeof opts?.size === "number") {
+      params.set("size", String(opts.size));
+    }
+    const qs = params.toString();
+    const path = `/tutor/trilhas${qs ? `?${qs}` : ""}`;
+    return apiFetch<T>(path, { method: "GET", token });
+  },
   trilhaMeuProgresso: <T>(trailId: string, token: string | null) =>
     apiFetch<T>(`/tutor/trilhas/${trailId}/meu-progresso`, { method: "GET", token }),
   iniciarTrilha: <T>(trailId: string, token: string | null) =>
@@ -78,6 +99,12 @@ export const TutorAPI = {
     apiFetch<T>(`/tutor/modulos/${moduloId}/meu-progresso`, { method: "GET", token }),
   ranking: <T>(token: string | null) =>
     apiFetch<T>("/tutor/ranking", { method: "GET", token }),
+  recompensas: <T>(token: string | null, opts?: { page?: number; size?: number }) => {
+    const page = opts?.page ?? 0;
+    const size = opts?.size ?? 5;
+    const qs = `?page=${page}&size=${size}`;
+    return apiFetch<T>(`/tutor/recompensas${qs}`, { method: "GET", token });
+  },
 };
 
 export const EspecieAPI = {

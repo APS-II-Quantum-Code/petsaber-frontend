@@ -19,7 +19,7 @@ const Register = () => {
     senha: "",
     confirmSenha: "",
   });
-  const { register } = useAuth();
+  const { register, login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -36,8 +36,10 @@ const Register = () => {
         senha: formData.senha,
         role: "TUTOR",
       });
-      toast({ title: "Cadastro realizado", description: "Faça login para continuar." });
-      navigate("/login", { replace: true });
+      // Auto login após cadastro e redireciona para cadastrar novo pet
+      await login({ email: formData.email, senha: formData.senha });
+      toast({ title: "Cadastro realizado", description: "Você foi autenticado e será redirecionado para cadastrar seu primeiro pet." });
+      navigate("/add-pet", { replace: true });
     } catch (e) {
       // Erros já são tratados no apiFetch com toast, mas mantemos fallback
       toast({ title: "Falha no cadastro", description: "Tente novamente mais tarde.", variant: "destructive" });

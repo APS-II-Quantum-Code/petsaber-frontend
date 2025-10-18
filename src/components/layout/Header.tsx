@@ -1,4 +1,4 @@
-import { Heart, User, BookOpen, Trophy, Settings, LogOut, UserCircle, Info, PawPrint } from "lucide-react";
+import { Heart, User, Trophy, Settings, LogOut, UserCircle, PawPrint } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -55,26 +55,6 @@ const Header = () => {
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
-          <Button variant="ghost" size="sm" className="gap-2"
-            onClick={() => {
-              const petsSection = document.getElementById('meus-pets');
-              if (petsSection) {
-                petsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
-            }}
-          >
-            <Heart className="h-4 w-4" />
-            Meus Pets
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="gap-2"
-            onClick={() => navigate("/trails")}
-          >
-            <BookOpen className="h-4 w-4" />
-            Trilhas
-          </Button>
           <Button variant="ghost" size="sm" className="gap-2">
             <Trophy className="h-4 w-4" />
             {loadingPts ? "—" : `${numberFmt.format(pontosTotais ?? 0)} pts`}
@@ -100,21 +80,11 @@ const Header = () => {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                 <UserCircle className="mr-2 h-4 w-4" />
-                Editar Perfil do tutor
+                Perfil
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/edit-pet/1")}>
+              <DropdownMenuItem onClick={() => navigate("/tutor#meus-pets") }>
                 <Heart className="mr-2 h-4 w-4" />
-                Editar Perfil do pet
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/account-info")}>
-                <Info className="mr-2 h-4 w-4" />
-                Informações da conta
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Administração</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigate("/admin/create-trail")}>
-                <PawPrint className="mr-2 h-4 w-4" />
-                Criar trilha
+                Meus Pets
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
