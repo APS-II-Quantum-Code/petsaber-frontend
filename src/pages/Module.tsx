@@ -33,6 +33,7 @@ const Module = () => {
   const [loadingExercises, setLoadingExercises] = useState(false);
   const [errorModule, setErrorModule] = useState<string | null>(null);
   const [errorExercises, setErrorExercises] = useState<string | null>(null);
+  const [moduleStatus, setModuleStatus] = useState<string | null>(null);
 
   useEffect(() => {
     const id = moduleId ?? "";
@@ -60,11 +61,57 @@ const Module = () => {
       } finally {
         setLoadingExercises(false);
       }
+
+      // Busca o status de andamento do módulo
+      try {
+        const prog = await TutorAPI.moduloMeuProgresso<{ status: string }>(id, token);
+        const status = String((prog as any)?.status || "");
+        setModuleStatus(status || null);
+      } catch {
+        setModuleStatus(null);
+      }
     };
     fetchData();
   }, [moduleId, token]);
 
   const getMutedBadge = () => "bg-muted text-muted-foreground border-muted";
+
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case "NAO_INICIADO":
+        return "bg-muted text-muted-foreground border-muted";
+      case "EM_ANDAMENTO":
+        return "bg-blue-50 text-blue-700 border-blue-200";
+      case "CONCLUIDO":
+      case "APROVADO":
+        return "bg-green-50 text-green-700 border-green-200";
+      case "REPROVADO":
+        return "bg-red-50 text-red-700 border-red-200";
+      case "PENDENTE":
+        return "bg-amber-50 text-amber-700 border-amber-200";
+      default:
+        return getMutedBadge();
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "NAO_INICIADO":
+        return "Não iniciado";
+      case "EM_ANDAMENTO":
+        return "Em andamento";
+      case "CONCLUIDO":
+        return "Concluído";
+      case "APROVADO":
+        return "Aprovado";
+      case "REPROVADO":
+        return "Reprovado";
+      case "PENDENTE":
+        return "Pendente";
+      default:
+        return status || "";
+    }
+  };
 
   // Exercícios integrados ao final do módulo
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -170,11 +217,18 @@ const Module = () => {
                   <BookOpen className="h-6 w-6 text-primary" />
                   <CardTitle className="text-2xl">{moduleDetails?.nome || (loadingModule ? "Carregando..." : "Módulo")}</CardTitle>
                 </div>
-                {moduleDetails && (
-                  <Badge variant="outline" className={getMutedBadge()}>
-                    {moduleDetails.duracaoHoras}h
-                  </Badge>
-                )}
+                <div className="flex items-center gap-2">
+                  {moduleStatus && (
+                    <Badge variant="outline" className={getStatusBadgeColor(moduleStatus)}>
+                      {getStatusLabel(moduleStatus)}
+                    </Badge>
+                  )}
+                  {moduleDetails && (
+                    <Badge variant="outline" className={getMutedBadge()}>
+                      {moduleDetails.duracaoHoras}h
+                    </Badge>
+                  )}
+                </div>
               </div>
               <p className="text-sm text-muted-foreground">Todo o conteúdo do módulo está abaixo. Role para ler tudo e, ao final, faça o exercício.</p>
             </CardHeader>
@@ -243,7 +297,7 @@ const Module = () => {
                           <span className="text-base font-semibold">{finalPercent.toFixed(2)}%</span>
                         </div>
                         <div className={`mt-2 text-sm font-medium ${finalPercent > 75 ? "text-green-600" : "text-red-600"}`}>
-                          {finalPercent > 75 ? "Você passou na trilha!" : "Você não passou na trilha. Tente novamente."}
+                          {finalPercent > 75 ? "Você passou no modulo!" : "Você não passou no modulo. Tente novamente."}
                         </div>
                       </div>
                     )}

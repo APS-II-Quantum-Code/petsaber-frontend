@@ -12,10 +12,34 @@ import {
 } from "@/components/ui/dropdown-menu";
 import petSaberLogo from "@/assets/pet-saber-logo.png";
 import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react";
+import { TutorAPI } from "@/lib/api";
 
 const Header = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
+
+  const [pontosTotais, setPontosTotais] = useState<number | null>(null);
+  const [loadingPts, setLoadingPts] = useState(true);
+  const numberFmt = new Intl.NumberFormat("pt-BR");
+
+  useEffect(() => {
+    let mounted = true;
+    const run = async () => {
+      try {
+        const resp = await TutorAPI.meuProgresso<{ pontosTotais: number }>(token);
+        if (mounted) setPontosTotais(resp?.pontosTotais ?? 0);
+      } catch (e) {
+        if (mounted) setPontosTotais(0);
+      } finally {
+        if (mounted) setLoadingPts(false);
+      }
+    };
+    run();
+    return () => {
+      mounted = false;
+    };
+  }, [token]);
 
   const handleLogout = () => {
     logout();
@@ -53,7 +77,7 @@ const Header = () => {
           </Button>
           <Button variant="ghost" size="sm" className="gap-2">
             <Trophy className="h-4 w-4" />
-            1.250 pts
+            {loadingPts ? "—" : `${numberFmt.format(pontosTotais ?? 0)} pts`}
           </Button>
         </nav>
 

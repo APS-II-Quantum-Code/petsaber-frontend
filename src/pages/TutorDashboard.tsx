@@ -4,15 +4,16 @@ import Header from "@/components/layout/Header.tsx";
 import WelcomeCard from "@/components/dashboard/WelcomeCard.tsx";
 import StatsCard from "@/components/dashboard/StatsCard.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {Plus} from "lucide-react";
+import {Plus, Trophy} from "lucide-react";
 import PetCard from "@/components/pets/PetCard.tsx";
 import TrailCard, {TrailProgressCardData} from "@/components/learning/TrailCard.tsx";
 import {PetAPI, TutorAPI} from "@/lib/api";
 import {useAuth} from "@/context/AuthContext";
 import {toast} from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const TutorDashboard = () => {
-    const {token} = useAuth();
+    const {token, user} = useAuth();
 
     // Pets from backend
     type Pet = {
@@ -66,12 +67,22 @@ const TutorDashboard = () => {
         }>;
     };
 
+    type TutorRankingResponse = {
+        content: Array<{
+            idTutor: number;
+            nome: string;
+            pontuacao: number;
+        }>;
+    };
+
     const [pets, setPets] = useState<Pet[]>([]);
     const [loadingPets, setLoadingPets] = useState(true);
     const [trails, setTrails] = useState<TrailProgressCardData[]>([]);
     const [loadingTrails, setLoadingTrails] = useState(true);
     const [availableTrails, setAvailableTrails] = useState<TrailProgressCardData[]>([]);
     const [loadingAvailableTrails, setLoadingAvailableTrails] = useState(true);
+    const [ranking, setRanking] = useState<TutorRankingResponse["content"]>([]);
+    const [loadingRanking, setLoadingRanking] = useState(true);
     const loadPets = async () => {
         setLoadingPets(true);
         try {
@@ -138,10 +149,24 @@ const TutorDashboard = () => {
         }
     };
 
+    const loadRanking = async () => {
+        setLoadingRanking(true);
+        try {
+            const resp = await TutorAPI.ranking<TutorRankingResponse>(token);
+            setRanking(resp?.content ?? []);
+        } catch (e) {
+            console.error("Erro ao carregar ranking de tutores:", e);
+            setRanking([]);
+        } finally {
+            setLoadingRanking(false);
+        }
+    };
+
     useEffect(() => {
         loadPets();
         loadTrails();
         loadAvailableTrails();
+        loadRanking();
     }, [token]);
 
     const handleEditPet = (pet: unknown) => {
@@ -299,6 +324,91 @@ const TutorDashboard = () => {
                             ))}
                         </div>
                     )}
+                </section>
+
+                {/* Ranking de Tutores (lado esquerdo, mais compacto) */}
+                <section>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2">
+                            <Card className="shadow-card">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-xl">
+                                        <Trophy className="h-5 w-5 text-yellow-500" />
+                                        Ranking de Tutores
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {loadingRanking ? (
+                                        <div className="text-muted-foreground">Carregando ranking…</div>
+                                    ) : ranking.length === 0 ? (
+                                        <div className="text-muted-foreground">Nenhum tutor no ranking ainda.</div>
+                                    ) : (
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-sm">
+                                                <thead>
+                                                    <tr className="text-muted-foreground">
+                                                        <th className="text-left py-2 px-3">Posição</th>
+                                                        <th className="text-left py-2 px-3">Tutor</th>
+                                                        <th className="text-right py-2 px-3">Pontuação</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {ranking.map((row, idx) => {
+                                                        const isMe = user?.id ? Number(user.id) === row.idTutor : false;
+                                                        const rank = idx + 1;
+                                                        const rankStyle =
+                                                            rank === 1
+                                                                ? "bg-yellow-50 border-yellow-200"
+                                                                : rank === 2
+                                                                ? "bg-zinc-50 border-zinc-200"
+                                                                : rank === 3
+                                                                ? "bg-amber-50 border-amber-200"
+                                                                : "border-border";
+                                                        const meStyle = isMe ? "bg-primary/5 border-primary" : "";
+                                                        const rowClass = `border-t ${rankStyle} ${meStyle}`.trim();
+                                                        return (
+                                                            <tr key={row.idTutor} className={rowClass}>
+                                                                <td className="py-3 px-3 font-medium">
+                                                                    <div className="flex items-center gap-2">
+                                                                        {rank <= 3 && (
+                                                                            <Trophy
+                                                                                className={`h-4 w-4 ${
+                                                                                    rank === 1
+                                                                                        ? "text-yellow-500"
+                                                                                        : rank === 2
+                                                                                        ? "text-zinc-400"
+                                                                                        : "text-amber-600"
+                                                                                }`}
+                                                                            />
+                                                                        )}
+                                                                        <span>{rank}º</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="py-3 px-3">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="font-medium">{row.nome}</span>
+                                                                        {isMe && (
+                                                                            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                                                                                Você
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="py-3 px-3 text-right">
+                                                                    <span className="px-2 py-1 rounded-md bg-muted">{row.pontuacao.toFixed(1)}</span>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </div>
+                        <div className="hidden lg:block lg:col-span-1" />
+                    </div>
                 </section>
             </main>
         </div>
