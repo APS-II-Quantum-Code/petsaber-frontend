@@ -364,7 +364,7 @@ const Module = () => {
                       const base = 'w-full p-4 rounded-lg border-2 text-left transition-all';
                       const stateClass = isSelected
                         ? (isCorrect === undefined
-                            ? 'border-primary bg-primary/5'
+                            ? 'border-blue-500 bg-blue-50'
                             : isCorrect
                               ? 'border-green-500 bg-green-50'
                               : 'border-red-500 bg-red-50')
@@ -380,15 +380,12 @@ const Module = () => {
                             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                               isSelected
                                 ? isCorrect === undefined
-                                  ? 'border-primary bg-primary'
+                                  ? 'border-blue-500 bg-blue-500'
                                   : isCorrect
                                     ? 'border-green-500 bg-green-500'
                                     : 'border-red-500 bg-red-500'
                                 : 'border-muted-foreground'
                             }`}>
-                              {isSelected && (
-                                <CheckCircle className="h-3 w-3 text-primary-foreground" />
-                              )}
                             </div>
                             <span className="font-medium">{alt.conteudo}</span>
                           </div>

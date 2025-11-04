@@ -60,6 +60,20 @@ export const TutorAPI = {
     apiFetch<T>("/tutor/meus-dados", { method: "GET", token }),
   meuProgresso: <T>(token: string | null) =>
     apiFetch<T>("/tutor/meu-progresso", { method: "GET", token }),
+  atualizarSenha: <T>(payload: { senhaAtual: string; novaSenha: string }, token: string | null) =>
+    apiFetch<T>("/tutor/atualizar-senha", { method: "PUT", body: payload, token }),
+  atualizarPerfil: <T>(
+    payload: {
+      nome: string;
+      cpf: string;
+      telefone: string;
+      dataNascimento: string; // ISO format (YYYY-MM-DD)
+      genero: string;
+      nacionalidade: string;
+    },
+    token: string | null
+  ) =>
+    apiFetch<T>("/tutor/atualizar-perfil", { method: "PUT", body: payload, token }),
   buscarPets: <T>(token: string | null) =>
     apiFetch<T>("/tutor/buscar-pets", { method: "GET", token }),
   minhasTrilhas: <T>(token: string | null) =>
