@@ -1,4 +1,4 @@
-import { Heart, User, Trophy, Settings, LogOut, UserCircle, PawPrint } from "lucide-react";
+import { Heart, User, Trophy, Settings, LogOut, UserCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,14 +18,20 @@ import { TutorAPI } from "@/lib/api";
 const Header = () => {
   const navigate = useNavigate();
   const { user, logout, token } = useAuth();
-
   const [pontosTotais, setPontosTotais] = useState<number | null>(null);
   const [loadingPts, setLoadingPts] = useState(true);
   const numberFmt = new Intl.NumberFormat("pt-BR");
+  const role = user?.role?.toUpperCase?.();
 
   useEffect(() => {
     let mounted = true;
     const run = async () => {
+      // Evita chamar endpoint de tutor quando o usuário é CONSULTOR
+      const role = user?.role?.toUpperCase?.();
+      if (role !== "TUTOR") {
+        if (mounted) setLoadingPts(false);
+        return;
+      }
       try {
         const resp = await TutorAPI.meuProgresso<{ pontosTotais: number }>(token);
         if (mounted) setPontosTotais(resp?.pontosTotais ?? 0);
@@ -39,7 +45,7 @@ const Header = () => {
     return () => {
       mounted = false;
     };
-  }, [token]);
+  }, [token, user?.role]);
 
   const handleLogout = () => {
     logout();
@@ -54,12 +60,14 @@ const Header = () => {
           <h1 className="text-xl font-bold text-foreground">Pet Saber</h1>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6">
-          <Button variant="ghost" size="sm" className="gap-2">
-            <Trophy className="h-4 w-4" />
-            {loadingPts ? "—" : `${numberFmt.format(pontosTotais ?? 0)} pts`}
-          </Button>
-        </nav>
+        {role === "TUTOR" && (
+          <nav className="hidden md:flex items-center gap-6">
+            <Button variant="ghost" size="sm" className="gap-2">
+              <Trophy className="h-4 w-4" />
+              {loadingPts ? "—" : `${numberFmt.format(pontosTotais ?? 0)} pts`}
+            </Button>
+          </nav>
+        )}
 
         <div className="flex items-center gap-3">
           <DropdownMenu>
@@ -78,15 +86,19 @@ const Header = () => {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Configurações</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
-                <UserCircle className="mr-2 h-4 w-4" />
-                Perfil
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/tutor#meus-pets") }>
-                <Heart className="mr-2 h-4 w-4" />
-                Meus Pets
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              {role === "TUTOR" && (
+                <>
+                  <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    Perfil
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/tutor#meus-pets") }>
+                    <Heart className="mr-2 h-4 w-4" />
+                    Meus Pets
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Fazer logout

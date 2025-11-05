@@ -154,3 +154,44 @@ export const PetAPI = {
     deletarPet: <T>(id: string, token: string | null) =>
         apiFetch<T>(`/tutor/deletar-pet/${id}`, { method: "DELETE", token }),
 };
+
+export const ConsultorAPI = {
+  trilhas: <T>(token: string | null, opts?: { page?: number; size?: number }) => {
+    const page = opts?.page ?? 0;
+    const size = opts?.size ?? 6;
+    const qs = `?page=${page}&size=${size}`;
+    return apiFetch<T>(`/consultor/trilhas${qs}`, { method: "GET", token });
+  },
+  recompensas: <T>(token: string | null, opts?: { page?: number; size?: number }) => {
+    const page = opts?.page ?? 0;
+    const size = opts?.size ?? 6;
+    const qs = `?page=${page}&size=${size}`;
+    return apiFetch<T>(`/consultor/recompensas${qs}`, { method: "GET", token });
+  },
+  trilhaDetalhes: <T>(idTrilha: string | number, token: string | null) =>
+    apiFetch<T>(`/consultor/trilhas/${idTrilha}`, { method: "GET", token }),
+  trilhaModulos: <T>(idTrilha: string | number, token: string | null) =>
+    apiFetch<T>(`/consultor/trilhas/${idTrilha}/modulos`, { method: "GET", token }),
+  deletarTrilha: <T>(idTrilha: string | number, token: string | null) =>
+    apiFetch<T>(`/consultor/trilhas/${idTrilha}`, { method: "DELETE", token }),
+  criarTrilha: <T>(
+    payload: { nome: string; descricao: string; nivel: string; idRaca: number | string },
+    token: string | null
+  ) => apiFetch<T>(`/consultor/trilhas`, { method: "POST", body: payload, token }),
+  atualizarTrilha: <T>(
+    idTrilha: string | number,
+    payload: { nome: string; descricao: string; nivel: string; idRaca: number | string },
+    token: string | null
+  ) => apiFetch<T>(`/consultor/trilhas/${idTrilha}`, { method: "PUT", body: payload, token }),
+};
+
+// Consultor (admin) species and breeds endpoints
+export const ConsultorEspecieAPI = {
+  buscarEspecies: <T>(token: string | null) =>
+    apiFetch<T>("/consultor/especies", { method: "GET", token }),
+};
+
+export const ConsultorRacaAPI = {
+  buscarRacasPorEspecie: <T>(especieId: number, token: string | null) =>
+    apiFetch<T>(`/consultor/especies/${especieId}/racas`, { method: "GET", token }),
+};
