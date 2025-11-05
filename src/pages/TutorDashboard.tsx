@@ -12,6 +12,7 @@ import {PetAPI, TutorAPI, EspecieAPI, RacaAPI} from "@/lib/api";
 import {useAuth} from "@/context/AuthContext";
 import {toast} from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const TutorDashboard = () => {
     const {token, user} = useAuth();
@@ -131,6 +132,8 @@ const TutorDashboard = () => {
     const [rewardsFirst, setRewardsFirst] = useState<boolean>(true);
     const [rewardsTotalPages, setRewardsTotalPages] = useState<number>(0);
     const [userPoints, setUserPoints] = useState<number>(0);
+    const [redeemOpen, setRedeemOpen] = useState<boolean>(false);
+    const [redeemMessage, setRedeemMessage] = useState<{ title: string; description: string } | null>(null);
     const loadPets = async () => {
         setLoadingPets(true);
         try {
@@ -672,9 +675,21 @@ const TutorDashboard = () => {
                                                             <Button
                                                                 className="w-full"
                                                                 disabled={!canRedeem}
-                                                                onClick={() => {
+                                                                onClick={async () => {
                                                                     if (!canRedeem) return;
-                                                                    toast({ title: "Resgate", description: "Resgate de recompensa em breve." });
+                                                                    try {
+                                                                        await TutorAPI.resgatarRecompensa<void>(r.idRecompensa, token);
+                                                                        setRedeemMessage({
+                                                                            title: "Recompensa resgatada!",
+                                                                            description: `Você resgatou: ${r.titulo}. Em instantes sua pontuação será atualizada.`,
+                                                                        });
+                                                                        setRedeemOpen(true);
+                                                                        // Recarrega a página da dashboard principal após breve feedback visual
+                                                                        setTimeout(() => navigate(0), 1500);
+                                                                    } catch (e: any) {
+                                                                        // apiFetch já trata toasts de erro genéricos; aqui apenas reforçamos uma mensagem
+                                                                        toast({ title: "Falha no resgate", description: e?.message || "Não foi possível resgatar a recompensa.", variant: "destructive" });
+                                                                    }
                                                                 }}
                                                             >
                                                                 {canRedeem ? "Resgatar" : "Pontos insuficientes"}
@@ -716,6 +731,17 @@ const TutorDashboard = () => {
                         </div>
                     </div>
                 </section>
+                {/* Dialog de sucesso de resgate */}
+                <Dialog open={redeemOpen} onOpenChange={setRedeemOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>{redeemMessage?.title ?? "Recompensa resgatada"}</DialogTitle>
+                            <DialogDescription>
+                                {redeemMessage?.description ?? "Seu resgate foi efetuado com sucesso."}
+                            </DialogDescription>
+                        </DialogHeader>
+                    </DialogContent>
+                </Dialog>
             </main>
         </div>
     );

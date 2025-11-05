@@ -110,7 +110,7 @@ const EditProfile = () => {
         const loadRewards = async () => {
             setLoadingRewards(true);
             try {
-                const r = await TutorAPI.recompensas<{
+                const r = await TutorAPI.minhasRecompensas<{
                     content: Array<{ idRecompensa: number; titulo: string; descricao: string; pontuacaoMinima: number }>
                 }>(token, {page: 0, size: 3});
                 if (!mounted) return;

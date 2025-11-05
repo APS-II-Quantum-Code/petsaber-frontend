@@ -119,6 +119,14 @@ export const TutorAPI = {
     const qs = `?page=${page}&size=${size}`;
     return apiFetch<T>(`/tutor/recompensas${qs}`, { method: "GET", token });
   },
+  minhasRecompensas: <T>(token: string | null, opts?: { page?: number; size?: number }) => {
+    const page = opts?.page ?? 0;
+    const size = opts?.size ?? 5;
+    const qs = `?page=${page}&size=${size}`;
+    return apiFetch<T>(`/tutor/minhas-recompensas${qs}`, { method: "GET", token });
+  },
+  resgatarRecompensa: <T>(idRecompensa: string | number, token: string | null) =>
+    apiFetch<T>(`/tutor/resgatar-recompensa/${idRecompensa}`, { method: "POST", token }),
 };
 
 export const EspecieAPI = {
