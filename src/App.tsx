@@ -19,6 +19,7 @@ import CreatModule from "./pages/admin/CreatModule";
 import EditTrail from "./pages/admin/EditTrail";
 import CreatContent from "./pages/admin/CreatContent";
 import AdminModuleDetails from "./pages/admin/ModuleDetails";
+import EditModule from "./pages/admin/EditModule";
 import LandingPage from "@/pages/LandingPage.tsx";
 import {AuthProvider, useAuth} from "@/context/AuthContext";
 import TutorDashboard from "@/pages/TutorDashboard";
@@ -68,6 +69,7 @@ const App = () => (
                 <Route path="/admin/create-content/:trailId/:moduleId" element={<CreatContent />} />
                 <Route path="/admin/edit-trail/:trailId" element={<EditTrail />} />
                 <Route path="/admin/module/:trailId/:moduleId" element={<AdminModuleDetails />} />
+                <Route path="/admin/edit-module/:trailId/:moduleId" element={<EditModule />} />
               </Route>
             </Route>
 

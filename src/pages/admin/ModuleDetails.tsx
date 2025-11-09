@@ -4,7 +4,7 @@ import Header from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, BookOpen } from "lucide-react";
+import { ArrowLeft, BookOpen, ListChecks, Pencil } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { TutorAPI, ConsultorAPI } from "@/lib/api";
 
@@ -72,9 +72,20 @@ const AdminModuleDetails = () => {
                   <BookOpen className="h-6 w-6 text-primary" />
                   <CardTitle className="text-2xl">{loading ? "Carregando…" : (details?.nome || "Módulo")}</CardTitle>
                 </div>
-                {!!details?.duracaoHoras && (
-                  <Badge variant="outline">{details.duracaoHoras}h</Badge>
-                )}
+                <div className="flex items-center gap-2">
+                  {!!details?.duracaoHoras && (
+                    <Badge variant="outline">{details.duracaoHoras}h</Badge>
+                  )}
+                  {!loading && (
+                    <Button
+                      className="gap-2"
+                      onClick={() => navigate(`/admin/edit-module/${trailId}/${moduleId}`)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Editar módulo
+                    </Button>
+                  )}
+                </div>
               </div>
               {!!details?.descricao && (
                 <p className="text-sm text-muted-foreground">{details.descricao}</p>
@@ -111,7 +122,17 @@ const AdminModuleDetails = () => {
 
           <Card className="shadow-card">
             <CardHeader>
-              <CardTitle className="text-xl">Exercícios</CardTitle>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ListChecks className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-xl">Exercícios</CardTitle>
+                </div>
+                {!loading && (
+                  <Badge variant="outline" className="text-xs">
+                    {exercises.length} {exercises.length === 1 ? "exercício" : "exercícios"}
+                  </Badge>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -120,18 +141,14 @@ const AdminModuleDetails = () => {
                 <p className="text-muted-foreground">Nenhum exercício cadastrado.</p>
               ) : (
                 <div className="space-y-4">
-                  {exercises.map((ex) => (
-                    <div key={ex.idExercicio} className="rounded-md border p-4">
-                      <div className="font-medium">{ex.nome}</div>
+                  {exercises.map((ex, idx) => (
+                    <div key={ex.idExercicio} className="rounded-md border p-4 bg-card/40">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="secondary" className="uppercase">Exercício {idx + 1}</Badge>
+                        <span className="font-medium text-foreground">{ex.nome}</span>
+                      </div>
                       {!!ex.descricao && (
-                        <div className="text-sm text-muted-foreground mb-2">{ex.descricao}</div>
-                      )}
-                      {!!ex.alternativas?.length && (
-                        <ul className="list-disc pl-6 text-sm text-muted-foreground">
-                          {ex.alternativas.map((alt) => (
-                            <li key={alt.idAlternativa}>{alt.conteudo}</li>
-                          ))}
-                        </ul>
+                        <div className="text-sm text-muted-foreground">{ex.descricao}</div>
                       )}
                     </div>
                   ))}
@@ -140,11 +157,7 @@ const AdminModuleDetails = () => {
             </CardContent>
           </Card>
 
-          <div className="mt-6 flex justify-end">
-            <Button variant="outline" onClick={() => navigate(`/admin/create-content/${trailId}/${moduleId}`)}>
-              Editar Conteúdo/Quiz
-            </Button>
-          </div>
+          
         </div>
       </div>
     </div>

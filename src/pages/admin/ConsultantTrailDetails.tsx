@@ -3,7 +3,7 @@ import {useNavigate, useParams} from "react-router-dom";
 import Header from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Pencil, Trash2, Layers, Clock, PawPrint } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, Layers, Clock, PawPrint, Plus } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { ConsultorAPI } from "@/lib/api";
 
@@ -49,6 +49,18 @@ const ConsultantTrailDetails = () => {
     load();
   }, [id, token]);
 
+  const handleDeleteModule = async (mod: ModuleItem) => {
+    if (!token) return;
+    const ok = window.confirm(`Deseja realmente deletar o módulo "${mod.nome}"?`);
+    if (!ok) return;
+    try {
+      await ConsultorAPI.deletarModulo<void>(mod.idModulo, token);
+      setModules((prev) => prev.filter((m) => m.idModulo !== mod.idModulo));
+    } catch {
+      // apiFetch já exibe toast de erro
+    }
+  };
+
   const handleDelete = async () => {
     if (!id || !details) return;
     const ok = window.confirm(`Deseja realmente deletar a trilha "${details.nome}"?`);
@@ -74,9 +86,20 @@ const ConsultantTrailDetails = () => {
 
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="text-2xl">
-              {loading ? "Carregando…" : details?.nome ?? "Trilha"}
-            </CardTitle>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="text-2xl">
+                {loading ? "Carregando…" : details?.nome ?? "Trilha"}
+              </CardTitle>
+              {!loading && details && (
+                <Button
+                  onClick={() => navigate(`/admin/edit-trail/${details.idTrilha}`)}
+                  className="gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Editar trilha
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? (
@@ -114,10 +137,6 @@ const ConsultantTrailDetails = () => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => navigate(`/admin/edit-trail/${details.idTrilha}`)} className="gap-2">
-                    <Pencil className="h-4 w-4" />
-                    Editar
-                  </Button>
                   <Button variant="destructive" onClick={handleDelete} className="gap-2">
                     <Trash2 className="h-4 w-4" />
                     Deletar
@@ -130,7 +149,18 @@ const ConsultantTrailDetails = () => {
 
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="text-xl">Módulos</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl">Módulos</CardTitle>
+              {!loading && (
+                <Button
+                  className="gap-2"
+                  onClick={() => navigate(`/admin/create-module/${id}`)}
+                >
+                  <Plus className="h-4 w-4" />
+                  Adicionar módulo
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -142,13 +172,48 @@ const ConsultantTrailDetails = () => {
                 {modules.map((m) => (
                   <li
                     key={m.idModulo}
-                    className="rounded-md border p-3 hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
-                    onClick={() => navigate(`/admin/module/${id}/${m.idModulo}`)}
-                    role="button"
-                    aria-label={`Abrir detalhes do módulo ${m.nome}`}
+                    className="rounded-md border p-3 transition-colors"
                   >
-                    <div className="font-medium">{m.nome}</div>
-                    {m.descricao && <div className="text-sm text-muted-foreground">{m.descricao}</div>}
+                    <div
+                      className="flex items-start justify-between gap-3 cursor-pointer hover:bg-accent/50 rounded-md p-1"
+                      onClick={() => navigate(`/admin/module/${id}/${m.idModulo}`)}
+                      role="button"
+                      aria-label={`Abrir detalhes do módulo ${m.nome}`}
+                    >
+                      <div>
+                        <div className="font-medium">{m.nome}</div>
+                        {m.descricao && (
+                          <div className="text-sm text-muted-foreground">{m.descricao}</div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/admin/edit-module/${id}/${m.idModulo}`);
+                          }}
+                          aria-label={`Editar módulo ${m.nome}`}
+                        >
+                          <Pencil className="h-4 w-4" />
+                          Editar
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteModule(m);
+                          }}
+                          aria-label={`Deletar módulo ${m.nome}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>
