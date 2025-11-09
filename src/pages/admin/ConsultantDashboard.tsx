@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Plus, Pencil, Eye, Trash2, Layers, Clock, PawPrint } from "lucide-react";
+import { Plus, Pencil, Trash2, Layers, Clock, PawPrint } from "lucide-react";
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,20 +22,11 @@ type TrailItem = {
   raca?: { id?: number; idRaca?: number; nome?: string };
 };
 
-type RewardsItem = {
-  idRecompensa: number;
-  titulo: string;
-  descricao: string;
-  pontuacaoMinima: number;
-};
-
 const ConsultantDashboard = () => {
   const navigate = useNavigate();
   const { token } = useAuth();
   const [trails, setTrails] = useState<TrailItem[]>([]);
   const [loadingTrails, setLoadingTrails] = useState(true);
-  const [rewards, setRewards] = useState<RewardsItem[]>([]);
-  const [loadingRewards, setLoadingRewards] = useState(true);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [trailDetails, setTrailDetails] = useState<Record<number, TrailItem | null>>({});
   type ModuleItem = { idModulo: number; nome: string; descricao?: string; duracaoHoras?: number };
@@ -60,23 +51,7 @@ const ConsultantDashboard = () => {
     load();
   }, [token]);
 
-  useEffect(() => {
-    // Carregar recompensas ativas (overview)
-    const load = async () => {
-      try {
-        setLoadingRewards(true);
-        type RewardsResponse = { content?: RewardsItem[] } | RewardsItem[];
-        const resp = await ConsultorAPI.recompensas<RewardsResponse>(token, { page: 0, size: 4 });
-        const items: RewardsItem[] = Array.isArray(resp) ? resp : (resp.content ?? []);
-        setRewards(items ?? []);
-      } catch {
-        setRewards([]);
-      } finally {
-        setLoadingRewards(false);
-      }
-    };
-    load();
-  }, [token]);
+  // Recompensas removidas do dashboard
 
   const toggleExpand = async (t: TrailItem) => {
     const id = t.idTrilha;
@@ -116,7 +91,7 @@ const ConsultantDashboard = () => {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold mb-1">Olá, bem-vindo(a)!</h1>
-            <p className="text-muted-foreground">Home do consultor: gerencie trilhas e recompensas do sistema</p>
+            <p className="text-muted-foreground">Home do consultor: gerencie trilhas do sistema</p>
           </div>
           <div className="flex gap-2" />
         </div>
@@ -208,48 +183,7 @@ const ConsultantDashboard = () => {
             </div>
           )}
         </section>
-        {/* Recompensas */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Recompensas</h2>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/consultor#recompensas")}>
-              Ver todas
-            </Button>
-          </div>
-          {loadingRewards ? (
-            <div className="text-muted-foreground">Carregando recompensas…</div>
-          ) : rewards.length === 0 ? (
-            <div className="text-muted-foreground">Nenhuma recompensa ativa.</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {rewards.map((r) => (
-                <Card
-                  key={r.idRecompensa}
-                  className="shadow-card border border-border/70 bg-card hover:shadow-lg hover:border-primary/30 transition-shadow"
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <CardTitle className="text-base">{r.titulo}</CardTitle>
-                        <CardDescription className="line-clamp-2">{r.descricao}</CardDescription>
-                      </div>
-                      <Badge className="whitespace-nowrap" variant="secondary">{r.pontuacaoMinima} pts</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex gap-2">
-                      <Button variant="secondary" className="flex-1 gap-2" onClick={() => navigate("/consultor#recompensas")}>
-                        <Eye className="h-4 w-4" />
-                        Detalhes
-                      </Button>
-                      <Button variant="outline" className="gap-2" onClick={() => navigate("/consultor#recompensas")}>Editar</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </section>
+        {/* Recompensas removidas */}
       </main>
     </div>
   );
