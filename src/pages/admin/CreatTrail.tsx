@@ -93,8 +93,8 @@ const CreateTrail = () => {
       };
       const created = await ConsultorAPI.criarTrilha<any>(payload, token);
       const newId = created?.idTrilha ?? created?.id ?? created?.trilhaId;
-      toast({ title: "Trilha criada!", description: "Agora você pode adicionar módulos à trilha" });
-      navigate(`/admin/create-module/${newId}`);
+      toast({ title: "Trilha criada!", description: "Redirecionando para os detalhes da trilha" });
+      navigate(`/consultor/trilhas/${newId}`);
     } catch (err) {
       // apiFetch já exibe toast de erro
     }
@@ -242,7 +242,7 @@ const CreateTrail = () => {
                   </Button>
                   <Button type="submit" className="flex-1 gap-2">
                     <Plus className="h-4 w-4" />
-                    Criar e Adicionar Módulos
+                    Criar
                   </Button>
                 </div>
               </form>

@@ -42,9 +42,9 @@ const CreateModule = () => {
     try {
       const created: any = await ConsultorAPI.criarModulo<any>(trailId, { nome: nome.trim(), descricao: descricao.trim(), duracaoHoras: dur, conteudo }, token);
       const newId = created?.idModulo ?? created?.id ?? created?.id_modulo ?? created?.data?.idModulo;
-      toast({ title: "Módulo criado", description: "Agora adicione o conteúdo e quiz do módulo" });
+      toast({ title: "Módulo criado", description: "Redirecionando para os detalhes do módulo" });
       if (newId) {
-        navigate(`/admin/create-content/${trailId}/${newId}`);
+        navigate(`/admin/module/${trailId}/${newId}`);
       } else {
         // fallback: voltar para detalhes da trilha
         navigate(`/consultor/trilhas/${trailId}`);
@@ -110,7 +110,7 @@ const CreateModule = () => {
                     </Button>
                     <Button onClick={handleSave} className="gap-2" disabled={saving}>
                       <Save className="h-4 w-4" />
-                      {saving ? "Salvando..." : "Avançar para Conteúdo"}
+                      {saving ? "Salvando..." : "Criar"}
                     </Button>
                   </div>
                 </div>

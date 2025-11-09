@@ -124,14 +124,19 @@ const AdminModuleDetails = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ListChecks className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-xl">Exercícios</CardTitle>
+                  <ListChecks className="h-6 w-6 text-primary" />
+                  <CardTitle>Exercícios</CardTitle>
                 </div>
-                {!loading && (
-                  <Badge variant="outline" className="text-xs">
-                    {exercises.length} {exercises.length === 1 ? "exercício" : "exercícios"}
-                  </Badge>
-                )}
+                <div className="flex items-center gap-3">
+                  {!!details?.idModulo && (
+                    <Badge variant="outline">
+                      {exercises.length} itens
+                    </Badge>
+                  )}
+                  <Button size="sm" onClick={() => navigate(`/admin/create-exercise/${trailId}/${moduleId}`)}>
+                    Adicionar exercício
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -140,17 +145,30 @@ const AdminModuleDetails = () => {
               ) : exercises.length === 0 ? (
                 <p className="text-muted-foreground">Nenhum exercício cadastrado.</p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {exercises.map((ex, idx) => (
-                    <div key={ex.idExercicio} className="rounded-md border p-4 bg-card/40">
-                      <div className="flex items-center gap-2 mb-1">
+                    <button
+                      key={ex.idExercicio}
+                      className="w-full text-left rounded-md border p-4 bg-card/40 hover:bg-accent/50 transition-colors"
+                      onClick={() => navigate(`/admin/exercise/${trailId}/${moduleId}/${ex.idExercicio}`)}
+                      role="button"
+                      aria-label={`Abrir detalhes do exercício ${ex.nome}`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
                         <Badge variant="secondary" className="uppercase">Exercício {idx + 1}</Badge>
                         <span className="font-medium text-foreground">{ex.nome}</span>
                       </div>
+
+                      {/* Pergunta (descrição) como destaque */}
                       {!!ex.descricao && (
-                        <div className="text-sm text-muted-foreground">{ex.descricao}</div>
+                        <div className="rounded-md border bg-background p-3 mb-3">
+                          <div className="text-xs font-semibold text-muted-foreground mb-1">Pergunta</div>
+                          <div className="text-sm leading-relaxed text-foreground/90">{ex.descricao}</div>
+                        </div>
                       )}
-                    </div>
+
+                      {/* Alternativas removidas desta tela; disponíveis no detalhe do exercício */}
+                    </button>
                   ))}
                 </div>
               )}

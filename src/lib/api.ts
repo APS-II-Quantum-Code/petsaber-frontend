@@ -176,6 +176,32 @@ export const ConsultorAPI = {
     apiFetch<T>(`/consultor/modulos/${idModulo}`, { method: "GET", token }),
   exerciciosDoModulo: <T>(idModulo: string | number, token: string | null) =>
     apiFetch<T>(`/consultor/modulos/${idModulo}/exercicios`, { method: "GET", token }),
+  alternativasDoExercicio: <T>(idExercicio: string | number, token: string | null) =>
+    apiFetch<T>(`/consultor/exercicio/${idExercicio}/alternativas`, { method: "GET", token }),
+  criarAlternativa: <T>(
+    idExercicio: string | number,
+    payload: { conteudo: string; correta: boolean },
+    token: string | null
+  ) => apiFetch<T>(`/consultor/exercicio/${idExercicio}/alternativa`, { method: "POST", body: payload, token }),
+  atualizarAlternativa: <T>(
+    idAlternativa: string | number,
+    payload: { conteudo: string; correta: boolean },
+    token: string | null
+  ) => apiFetch<T>(`/consultor/alternativa/${idAlternativa}`, { method: "PUT", body: payload, token }),
+  deletarAlternativa: <T>(
+    idAlternativa: string | number,
+    token: string | null
+  ) => apiFetch<T>(`/consultor/alternativa/${idAlternativa}`, { method: "DELETE", token }),
+  atualizarExercicio: <T>(
+    idExercicio: string | number,
+    payload: { nome: string; descricao: string; pontuacao?: number | null },
+    token: string | null
+  ) => apiFetch<T>(`/consultor/exericio/${idExercicio}`, { method: "PUT", body: payload, token }),
+  criarExercicio: <T>(
+    idModulo: string | number,
+    payload: { nome: string; descricao: string; pontuacao?: number | null },
+    token: string | null
+  ) => apiFetch<T>(`/consultor/modulos/${idModulo}/criar-exercicio`, { method: "POST", body: payload, token }),
   atualizarModulo: <T>(
     idModulo: string | number,
     payload: { nome?: string; descricao?: string; duracaoHoras?: number; conteudo?: string },
@@ -193,7 +219,7 @@ export const ConsultorAPI = {
   criarTrilha: <T>(
     payload: { nome: string; descricao: string; nivel: string; idRaca: number | string },
     token: string | null
-  ) => apiFetch<T>(`/consultor/trilhas`, { method: "POST", body: payload, token }),
+  ) => apiFetch<T>(`/consultor/trilhas/criar-trilha`, { method: "POST", body: payload, token }),
   atualizarTrilha: <T>(
     idTrilha: string | number,
     payload: { nome: string; descricao: string; nivel: string; idRaca: number | string },
