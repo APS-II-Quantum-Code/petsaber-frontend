@@ -172,6 +172,10 @@ export const ConsultorAPI = {
     apiFetch<T>(`/consultor/trilhas/${idTrilha}`, { method: "GET", token }),
   trilhaModulos: <T>(idTrilha: string | number, token: string | null) =>
     apiFetch<T>(`/consultor/trilhas/${idTrilha}/modulos`, { method: "GET", token }),
+  moduloDetalhes: <T>(idModulo: string | number, token: string | null) =>
+    apiFetch<T>(`/consultor/modulos/${idModulo}`, { method: "GET", token }),
+  exerciciosDoModulo: <T>(idModulo: string | number, token: string | null) =>
+    apiFetch<T>(`/consultor/modulos/${idModulo}/exercicios`, { method: "GET", token }),
   deletarTrilha: <T>(idTrilha: string | number, token: string | null) =>
     apiFetch<T>(`/consultor/trilhas/${idTrilha}`, { method: "DELETE", token }),
   criarTrilha: <T>(

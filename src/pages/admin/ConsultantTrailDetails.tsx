@@ -140,7 +140,13 @@ const ConsultantTrailDetails = () => {
             ) : (
               <ul className="space-y-2">
                 {modules.map((m) => (
-                  <li key={m.idModulo} className="rounded-md border p-3">
+                  <li
+                    key={m.idModulo}
+                    className="rounded-md border p-3 hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors"
+                    onClick={() => navigate(`/admin/module/${id}/${m.idModulo}`)}
+                    role="button"
+                    aria-label={`Abrir detalhes do módulo ${m.nome}`}
+                  >
                     <div className="font-medium">{m.nome}</div>
                     {m.descricao && <div className="text-sm text-muted-foreground">{m.descricao}</div>}
                   </li>
