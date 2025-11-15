@@ -313,7 +313,7 @@ const Module = () => {
                           ) : (
                             <XCircle className="h-5 w-5 text-destructive flex-shrink-0" />
                           )}
-                          <span className="text-sm">{ex.nome}</span>
+                          <span className="text-sm">{ex.descricao || ex.nome}</span>
                         </div>
                       );
                     })}
@@ -351,7 +351,7 @@ const Module = () => {
 
               <Card className="shadow-card mb-6">
                 <CardHeader>
-                  <CardTitle className="text-lg">{loadingExercises ? "Carregando exercício…" : currentQ?.nome || "Sem exercícios"}</CardTitle>
+                  <CardTitle className="text-lg">{loadingExercises ? "Carregando exercício…" : (currentQ?.descricao || currentQ?.nome || "Sem exercícios")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
